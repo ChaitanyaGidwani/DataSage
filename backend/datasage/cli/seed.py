@@ -22,9 +22,12 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import async_session_factory, engine
-from datasage.models import Base
+from datasage.core.security import hash_password
+import datasage.models  # Ensure all models are registered with Base.metadata
+from datasage.models.base import Base
 from datasage.models.reference import City, Locality
 from datasage.models.property import Property
+from datasage.models.user import User
 from datasage.models.valuation import ModelVersion
 
 logger = logging.getLogger(__name__)
@@ -208,13 +211,9 @@ async def run_seed(count: int = 1000) -> None:
                 await seed_properties(session, localities, count)
 
             # Seed heuristic model version
-            from datasage.models.valuation import ModelVersion
-            from sqlalchemy import select as sa_select
-            import uuid as _uuid
-
             sentinel_id = _uuid.UUID("00000000-0000-0000-0000-000000000001")
             existing_model = await session.execute(
-                sa_select(ModelVersion).where(ModelVersion.id == sentinel_id)
+                select(ModelVersion).where(ModelVersion.id == sentinel_id)
             )
             if not existing_model.scalar_one_or_none():
                 mv = ModelVersion(
@@ -227,25 +226,21 @@ async def run_seed(count: int = 1000) -> None:
                 logger.info("Seeded heuristic model version.")
 
             # Seed demo user
-            from datasage.models.user import User
-            from datasage.core.security import hash_password
-
             existing_user = await session.execute(
-                sa_select(User).where(User.email == "demo@datasage.dev")
+                select(User).where(User.email == "demo@datasage.ai")
             )
             if not existing_user.scalar_one_or_none():
-                import asyncio
-                pw_hash = await asyncio.to_thread(hash_password, "demo1234")
+                pw_hash = await asyncio.to_thread(hash_password, "DataSage@2026")
                 demo = User(
                     name="Demo User",
-                    email="demo@datasage.dev",
+                    email="demo@datasage.ai",
                     password_hash=pw_hash,
                     role="buyer",
                     is_active=True,
                     email_verified=True,
                 )
                 session.add(demo)
-                logger.info("Seeded demo user (demo@datasage.dev / demo1234).")
+                logger.info("Seeded demo user (demo@datasage.ai / DataSage@2026).")
 
             await session.commit()
             logger.info("Seeding complete.")
