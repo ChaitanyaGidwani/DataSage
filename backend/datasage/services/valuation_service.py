@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -86,7 +87,7 @@ class ValuationService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def predict_value(self, property_id: str) -> dict:
+    async def predict_value(self, property_id: str) -> dict[str, Any]:
         """Generate a valuation prediction for a single property."""
         # Fetch property
         result = await self.session.execute(
@@ -196,7 +197,7 @@ class ValuationService:
             "shap_values": shap_values,
         }
 
-    async def bulk_predict(self, limit: int = 100) -> list[dict]:
+    async def bulk_predict(self, limit: int = 100) -> list[dict[str, Any]]:
         """Generate valuations for all properties that don't have one yet."""
         # Find properties without predictions
         subq = select(ValuationPrediction.property_id)

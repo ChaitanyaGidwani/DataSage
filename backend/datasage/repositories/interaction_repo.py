@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -84,7 +85,7 @@ class SearchHistoryRepository:
         return list(result.scalars().all())
 
     async def record(
-        self, user_id: uuid.UUID, query_params: dict, result_count: int
+        self, user_id: uuid.UUID, query_params: dict[str, Any], result_count: int
     ) -> SearchHistory:
         entry = SearchHistory(
             user_id=user_id,

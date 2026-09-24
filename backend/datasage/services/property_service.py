@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +29,7 @@ class PropertyService:
         self.property_repo = PropertyRepository(session)
         self.locality_repo = LocalityRepository(session)
 
-    async def search(self, **params) -> tuple[list[PropertySummaryResponse], str | None, int]:
+    async def search(self, **params: Any) -> tuple[list[PropertySummaryResponse], str | None, int]:
         """Search properties with filters and pagination."""
         properties, next_cursor, total = await self.property_repo.search(**params)
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from geoalchemy2 import Geography
 from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String
@@ -27,7 +28,7 @@ class PropertyLocation(UUIDMixin, Base):
     full_address: Mapped[str | None] = mapped_column(String(500), nullable=True)
     pin_code: Mapped[str | None] = mapped_column(String(10), nullable=True)
     location_score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    sub_scores: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    sub_scores: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     poi_last_refreshed: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -55,7 +56,7 @@ class POI(Base):
         Geography("POINT", srid=4326), nullable=False
     )
     osm_id: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True)
-    tags: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    tags: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )

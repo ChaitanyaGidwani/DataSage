@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from geoalchemy2 import Geography
 from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -19,7 +21,7 @@ class City(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     state: Mapped[str] = mapped_column(String(100), nullable=False)
     bbox: Mapped[str | None] = mapped_column(Geography("POLYGON", srid=4326), nullable=True)
-    scoring_weights: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    scoring_weights: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships

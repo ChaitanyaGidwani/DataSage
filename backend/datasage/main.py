@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -119,7 +120,7 @@ def create_app() -> FastAPI:
 
     # ── Health check ───────────────────────────────────────────────────────
     @app.get("/health", tags=["System"])
-    async def health() -> dict:
+    async def health() -> dict[str, Any]:
         return {"status": "ok", "version": settings.APP_VERSION, "env": settings.APP_ENV}
 
     return app

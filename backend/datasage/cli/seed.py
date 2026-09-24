@@ -66,7 +66,8 @@ async def seed_cities_and_localities(session: AsyncSession) -> list[Locality]:
     """Insert cities and localities from CSV."""
     # Check if already seeded
     existing = await session.execute(text("SELECT COUNT(*) FROM city"))
-    if existing.scalar() > 0:
+    count = existing.scalar()
+    if count is not None and count > 0:
         logger.info("Cities already seeded — skipping.")
         locs = await session.execute(select(Locality))
         return list(locs.scalars().all())

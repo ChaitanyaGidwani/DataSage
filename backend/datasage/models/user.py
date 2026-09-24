@@ -41,13 +41,13 @@ class UserPreference(UUIDMixin, TimestampMixin, Base):
     )
     budget_min: Mapped[int | None] = mapped_column(Integer, nullable=True)
     budget_max: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    bhk_preferences: Mapped[list | None] = mapped_column(JSONB, nullable=True)
-    preferred_locality_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    bhk_preferences: Mapped[list[int] | None] = mapped_column(JSONB, nullable=True)
+    preferred_locality_ids: Mapped[list[int] | None] = mapped_column(JSONB, nullable=True)
     commute_destination_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     commute_destination_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     commute_destination_label: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    lifestyle_priorities: Mapped[list | None] = mapped_column(JSONB, nullable=True)
-    property_type_preferences: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    lifestyle_priorities: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    property_type_preferences: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="preference", lazy="joined")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -19,7 +20,7 @@ class ModelVersion(UUIDMixin, Base):
 
     version_label: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     algorithm: Mapped[str] = mapped_column(String(50), nullable=False, default="xgboost")
-    hyperparameters: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    hyperparameters: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     mape: Mapped[float | None] = mapped_column(Float, nullable=True)
     r_squared: Mapped[float | None] = mapped_column(Float, nullable=True)
     mae: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -49,8 +50,8 @@ class ValuationPrediction(UUIDMixin, Base):
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
     pricing_classification: Mapped[str] = mapped_column(String(20), nullable=False)
     price_gap_pct: Mapped[float] = mapped_column(Float, nullable=False)
-    shap_values: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    feature_vector: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    shap_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    feature_vector: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

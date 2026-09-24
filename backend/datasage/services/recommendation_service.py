@@ -104,11 +104,9 @@ class RecommendationService:
 
         scored_items: list[tuple[float, RecommendationItem]] = []
 
-        pref_bhks = pref.bhk_preferences if pref and pref.bhk_preferences else []
-        pref_localities = (
-            [int(lid) for lid in pref.preferred_locality_ids if str(lid).isdigit() or isinstance(lid, int)]
-            if pref and pref.preferred_locality_ids
-            else []
+        pref_bhks: list[int] = pref.bhk_preferences if pref and pref.bhk_preferences else []
+        pref_localities: list[int] = (
+            pref.preferred_locality_ids if pref and pref.preferred_locality_ids else []
         )
         budget_min = pref.budget_min if pref else None
         budget_max = pref.budget_max if pref else None
