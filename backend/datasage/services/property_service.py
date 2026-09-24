@@ -69,7 +69,12 @@ class PropertyService:
 
     async def get_detail(self, property_id: str) -> PropertyDetailResponse:
         """Get full property detail by ID."""
-        prop = await self.property_repo.get_by_id(uuid.UUID(property_id))
+        try:
+            prop_uuid = uuid.UUID(property_id)
+        except ValueError:
+            raise NotFoundError("Property", property_id)
+
+        prop = await self.property_repo.get_by_id(prop_uuid)
         if not prop:
             raise NotFoundError("Property", property_id)
 
@@ -125,3 +130,70 @@ class PropertyService:
             listed_at=prop.listed_at,
             created_at=prop.created_at,
         )
+
+    async def get_similar(self, property_id: str, limit: int = 4) -> list[PropertySummaryResponse]:
+        """Find similar properties based on locality, BHK, and price range."""
+        try:
+            prop_uuid = uuid.UUID(property_id)
+        except ValueError:
+            raise NotFoundError("Property", property_id)
+
+        prop = await self.property_repo.get_by_id(prop_uuid)
+        if not prop:
+            raise NotFoundError("Property", property_id)
+
+        min_price = max(0, int(prop.listing_price * 0.75))
+        max_price = int(prop.listing_price * 1.30)
+
+        # First try same locality
+        candidates, _, _ = await self.property_repo.search(
+            locality_id=prop.locality_id,
+            min_price=min_price,
+            max_price=max_price,
+            limit=limit + 5,
+        )
+        filtered = [p for p in candidates if p.id != prop.id]
+
+        # If not enough candidates in locality, broaden to city with same BHK
+        if len(filtered) < limit:
+            city_candidates, _, _ = await self.property_repo.search(
+                city_id=prop.city_id,
+                bhk=prop.bhk,
+                min_price=min_price,
+                max_price=max_price,
+                limit=limit + 5,
+            )
+            for c in city_candidates:
+                if c.id != prop.id and c.id not in [f.id for f in filtered]:
+                    filtered.append(c)
+
+        selected = filtered[:limit]
+
+        summaries = []
+        for p in selected:
+            loc = await self.locality_repo.get_by_id(p.locality_id)
+            loc_summary = LocalitySummary(
+                id=p.locality_id,
+                name=loc.name if loc else "Unknown",
+                city=loc.city.name if loc and loc.city else "",
+            )
+            primary_img = next(
+                (img.url for img in (p.images or []) if img.is_primary),
+                (p.images[0].url if p.images else None),
+            )
+            summaries.append(
+                PropertySummaryResponse(
+                    id=str(p.id),
+                    title=p.title,
+                    property_type=p.property_type,
+                    bhk=p.bhk,
+                    area_sqft=p.area_sqft,
+                    listing_price=p.listing_price,
+                    locality=loc_summary,
+                    primary_image_url=primary_img,
+                    location_score=p.cached_location_score,
+                    listed_at=p.listed_at,
+                )
+            )
+
+        return summaries

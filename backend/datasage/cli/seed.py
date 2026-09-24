@@ -211,7 +211,7 @@ async def run_seed(count: int = 1000) -> None:
                 await seed_properties(session, localities, count)
 
             # Seed heuristic model version
-            sentinel_id = _uuid.UUID("00000000-0000-0000-0000-000000000001")
+            sentinel_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
             existing_model = await session.execute(
                 select(ModelVersion).where(ModelVersion.id == sentinel_id)
             )

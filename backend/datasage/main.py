@@ -30,8 +30,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO),
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
     )
-    await init_db()
-    logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
+    try:
+        await init_db()
+        logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
+    except Exception as e:
+        logger.warning("Database connection failed on startup: %s. Continuing in offline mode.", e)
 
     # In development, auto-create tables and seed data
     if settings.APP_ENV == "development":
@@ -57,6 +60,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # ── Shutdown ───────────────────────────────────────────────────────────
+    try:
+        from datasage.core.redis import close_redis
+        await close_redis()
+    except Exception:
+        pass
     logger.info("DataSage shutting down.")
 
 
@@ -121,7 +129,16 @@ def create_app() -> FastAPI:
     # ── Health check ───────────────────────────────────────────────────────
     @app.get("/health", tags=["System"])
     async def health() -> dict[str, Any]:
-        return {"status": "ok", "version": settings.APP_VERSION, "env": settings.APP_ENV}
+        from datasage.core.redis import is_redis_available
+        redis_ok = await is_redis_available()
+        return {
+            "status": "ok",
+            "version": settings.APP_VERSION,
+            "env": settings.APP_ENV,
+            "services": {
+                "redis": "connected" if redis_ok else "unavailable",
+            },
+        }
 
     return app
 

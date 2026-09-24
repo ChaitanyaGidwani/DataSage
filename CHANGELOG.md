@@ -31,10 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Utilized `imageUrl` prop for background-image card presentation in [`PropertyCard.tsx`](file:///c:/Users/siddi/DataSage/frontend/src/components/property/PropertyCard.tsx).
   - Wrapped synchronous `setIsLoading(false)` with `queueMicrotask` in [`AuthContext.tsx`](file:///c:/Users/siddi/DataSage/frontend/src/contexts/AuthContext.tsx).
   - Handled 401 redirect ESLint rule in non-React API client in [`api.ts`](file:///c:/Users/siddi/DataSage/frontend/src/lib/api.ts).
-- **Backend Type Safety & Database Integrity**:
-  - Fixed variable shadowing of `select` in [`seed.py`](file:///c:/Users/siddi/DataSage/backend/datasage/cli/seed.py).
-  - Fixed double cursor consumption in [`interaction_repo.py`](file:///c:/Users/siddi/DataSage/backend/datasage/repositories/interaction_repo.py).
-  - Fixed string attribute access in [`comparison_service.py`](file:///c:/Users/siddi/DataSage/backend/datasage/services/comparison_service.py).
-  - Fixed `PropertySummaryResponse` schema instantiation and null safety in [`recommendation_service.py`](file:///c:/Users/siddi/DataSage/backend/datasage/services/recommendation_service.py).
-  - Added baseline `ModelVersion` seeding to prevent Foreign Key violations on heuristic predictions.
+- Added comprehensive Backend Test Suite (`backend/tests/`) with 69 tests (32 unit tests and 37 integration/API tests) spanning Security, Valuation, Location Intelligence, Investment ROI, Property Comparison, Recommendations, Localities, Search History, Redis, and API endpoints.
+- Resolved bcrypt >= 4.1.0 and passlib compatibility issue in [`security.py`](file:///c:/Users/siddi/DataSage/backend/datasage/core/security.py) by monkeypatching `__about__.__version__` to avoid trapped `AttributeError`.
+- Made [`main.py`](file:///c:/Users/siddi/DataSage/backend/datasage/main.py) startup resilient against database connection failures during offline testing/dev.
+- Fixed `city_id` query parameter type from `uuid.UUID` to `int` in [`recommendations.py`](file:///c:/Users/siddi/DataSage/backend/datasage/api/v1/recommendations.py) and [`recommendation_service.py`](file:///c:/Users/siddi/DataSage/backend/datasage/services/recommendation_service.py) to match the relational database schema.
+- Added nested API sub-routes per `docs/10-api-specification.md` in [`properties.py`](file:///c:/Users/siddi/DataSage/backend/datasage/api/v1/properties.py): `/properties/{id}/valuation`, `/properties/{id}/location`, `/properties/{id}/investment`, and `/properties/{id}/similar`.
+- Added `get_similar` comparable properties retrieval in [`PropertyService`](file:///c:/Users/siddi/DataSage/backend/datasage/services/property_service.py).
+- Added safe UUID parsing across [`properties.py`](file:///c:/Users/siddi/DataSage/backend/datasage/api/v1/properties.py), [`comparison.py`](file:///c:/Users/siddi/DataSage/backend/datasage/api/v1/comparison.py), and [`saved.py`](file:///c:/Users/siddi/DataSage/backend/datasage/api/v1/saved.py) to return appropriate 404/422 errors instead of unhandled 500 crashes.
+- Implemented [`backend/datasage/core/redis.py`](file:///c:/Users/siddi/DataSage/backend/datasage/core/redis.py) for asynchronous Redis caching and client management with automatic graceful offline fallback.
+- Integrated Redis 24h caching into [`ValuationService`](file:///c:/Users/siddi/DataSage/backend/datasage/services/valuation_service.py) for fast sub-millisecond retrieval of computed property valuations.
+- Added Redis connectivity detection to the `/health` endpoint and graceful pool shutdown in application lifespan.
 

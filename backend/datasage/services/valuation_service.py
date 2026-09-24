@@ -98,6 +98,15 @@ class ValuationService:
             from datasage.core.exceptions import NotFoundError
             raise NotFoundError("Property", property_id)
 
+        # Check Redis cache for recent valuation prediction
+        from datasage.core.config import settings
+        from datasage.core.redis import cache_get_json, cache_set_json
+
+        cache_key = f"valuation:{property_id}"
+        cached = await cache_get_json(cache_key)
+        if isinstance(cached, dict):
+            return cached
+
         # Fetch locality for avg_price_per_sqft
         loc_result = await self.session.execute(
             select(Locality).where(Locality.id == prop.locality_id)
@@ -185,7 +194,7 @@ class ValuationService:
         self.session.add(prediction)
         await self.session.flush()
 
-        return {
+        response_data = {
             "property_id": str(prop.id),
             "listing_price": prop.listing_price,
             "predicted_value": predicted_value,
@@ -196,6 +205,8 @@ class ValuationService:
             "price_gap_pct": round(gap_pct, 2),
             "shap_values": shap_values,
         }
+        await cache_set_json(cache_key, response_data, ttl=settings.ML_PREDICTION_CACHE_TTL)
+        return response_data
 
     async def bulk_predict(self, limit: int = 100) -> list[dict[str, Any]]:
         """Generate valuations for all properties that don't have one yet."""

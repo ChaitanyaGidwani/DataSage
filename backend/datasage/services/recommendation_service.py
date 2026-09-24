@@ -69,7 +69,7 @@ class RecommendationService:
         self,
         user_id: uuid.UUID | None = None,
         limit: int = 10,
-        city_id: uuid.UUID | None = None,
+        city_id: int | None = None,
     ) -> RecommendationResponse:
         """Score candidate properties and return top matches."""
         # 1. Fetch user preference if user_id is provided

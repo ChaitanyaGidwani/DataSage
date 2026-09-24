@@ -8,7 +8,15 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from jose import JWTError, jwt
+
+# Ensure passlib works with bcrypt >= 4.1.0 without trapped AttributeError
+if not hasattr(bcrypt, "__about__"):
+    class _BcryptAbout:
+        __version__ = getattr(bcrypt, "__version__", "4.2.0")
+    bcrypt.__about__ = _BcryptAbout()  # type: ignore[attr-defined]
+
 from passlib.context import CryptContext
 
 from datasage.core.config import settings

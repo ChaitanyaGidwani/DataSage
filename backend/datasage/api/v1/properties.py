@@ -84,3 +84,50 @@ async def get_property_detail(
     """Get full property detail by ID."""
     service = PropertyService(session)
     return await service.get_detail(property_id)
+
+
+@router.get("/{property_id}/valuation")
+async def get_property_valuation_subroute(
+    property_id: str,
+    session=Depends(get_session),
+):
+    """Get AI valuation for a specific property (nested endpoint)."""
+    from datasage.services.valuation_service import ValuationService
+
+    service = ValuationService(session)
+    return await service.predict_value(property_id)
+
+
+@router.get("/{property_id}/location")
+async def get_property_location_subroute(
+    property_id: str,
+    session=Depends(get_session),
+):
+    """Get location intelligence for a specific property (nested endpoint)."""
+    from datasage.services.location_service import LocationService
+
+    service = LocationService(session)
+    return await service.get_property_location_score(property_id)
+
+
+@router.get("/{property_id}/investment")
+async def get_property_investment_subroute(
+    property_id: str,
+    session=Depends(get_session),
+):
+    """Get investment potential analysis for a specific property (nested endpoint)."""
+    from datasage.services.investment_service import InvestmentService
+
+    service = InvestmentService(session)
+    return await service.analyze_property(property_id)
+
+
+@router.get("/{property_id}/similar", response_model=list[PropertySummaryResponse])
+async def get_similar_properties(
+    property_id: str,
+    limit: int = Query(4, ge=1, le=10),
+    session=Depends(get_session),
+):
+    """Get 3-5 similar properties based on locality, BHK, and price range."""
+    service = PropertyService(session)
+    return await service.get_similar(property_id, limit=limit)
