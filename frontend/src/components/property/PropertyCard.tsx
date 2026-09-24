@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatINR, formatArea, formatPropertyType } from '@/lib/formatters';
+import { useCompare } from '@/contexts/CompareContext';
 import styles from './PropertyCard.module.css';
 
 interface PropertyCardProps {
@@ -30,6 +31,18 @@ export default function PropertyCard({
   locationScore,
 }: PropertyCardProps) {
   const pricePerSqft = Math.round(listingPrice / areaSqft);
+  const { addToCompare, removeFromCompare, isInCompare, isFull } = useCompare();
+  const inCompare = isInCompare(id);
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCompare) {
+      removeFromCompare(id);
+    } else if (!isFull) {
+      addToCompare(id);
+    }
+  };
 
   return (
     <Link href={`/properties/${id}`} className={styles.card}>
@@ -43,6 +56,14 @@ export default function PropertyCard({
              pricingClassification === 'overpriced' ? '▲ Overpriced' : '● Fair Price'}
           </span>
         )}
+        <button
+          className={`${styles.compareBtn} ${inCompare ? styles.compareBtnActive : ''}`}
+          onClick={handleCompareClick}
+          title={inCompare ? 'Remove from compare' : isFull ? 'Compare list full' : 'Add to compare'}
+          aria-label={inCompare ? 'Remove from compare' : 'Add to compare'}
+        >
+          ⚡
+        </button>
       </div>
 
       <div className={styles.content}>
@@ -77,3 +98,4 @@ export default function PropertyCard({
     </Link>
   );
 }
+

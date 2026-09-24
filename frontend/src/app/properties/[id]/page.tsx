@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { formatINR, formatArea, formatPropertyType, formatDate } from '@/lib/formatters';
+import { formatINR, formatArea, formatPropertyType, formatDate, formatPercent } from '@/lib/formatters';
 import styles from './page.module.css';
 
 interface PropertyDetail {
@@ -131,6 +131,12 @@ export default function PropertyDetailPage() {
             {/* AI Analysis — Live valuation */}
             <AIValuation propertyId={property.id} listingPrice={property.listing_price} />
 
+            {/* Location Intelligence */}
+            <LocationIntelligence propertyId={property.id} />
+
+            {/* Investment Potential */}
+            <InvestmentPotential propertyId={property.id} />
+
             {/* Metadata */}
             <div className={styles.meta}>
               {property.listed_at && (
@@ -170,7 +176,7 @@ function AIValuation({ propertyId, listingPrice }: { propertyId: string; listing
     api
       .get<any>(`/valuations/${propertyId}`)
       .then(setValuation)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [propertyId]);
 
@@ -198,8 +204,8 @@ function AIValuation({ propertyId, listingPrice }: { propertyId: string; listing
     valuation.pricing_classification === 'underpriced'
       ? 'badge-underpriced'
       : valuation.pricing_classification === 'overpriced'
-      ? 'badge-overpriced'
-      : 'badge-fair';
+        ? 'badge-overpriced'
+        : 'badge-fair';
 
   const shapEntries = Object.entries(valuation.shap_values)
     .filter(([, v]) => Math.abs(v) > 0)
@@ -226,8 +232,8 @@ function AIValuation({ propertyId, listingPrice }: { propertyId: string; listing
               {valuation.pricing_classification === 'underpriced'
                 ? '▼ Underpriced'
                 : valuation.pricing_classification === 'overpriced'
-                ? '▲ Overpriced'
-                : '● Fair Price'}
+                  ? '▲ Overpriced'
+                  : '● Fair Price'}
             </span>
             <span className={styles.gapPct}>
               {valuation.price_gap_pct > 0 ? '+' : ''}
@@ -257,6 +263,323 @@ function AIValuation({ propertyId, listingPrice }: { propertyId: string; listing
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Location Intelligence Section ────────────────────────────────────────── */
+
+interface POIItem {
+  name: string;
+  category: string;
+  distance_meters: number;
+  distance_km: number;
+  travel_time_minutes_walk: number;
+  travel_time_minutes_drive: number;
+}
+
+interface LocationData {
+  property_id: string;
+  composite_score: number;
+  rating_label: string;
+  sub_scores: {
+    transit: number;
+    schools: number;
+    healthcare: number;
+    shopping: number;
+    parks: number;
+    dining: number;
+  };
+  nearest_metro: POIItem | null;
+  nearest_hospital: POIItem | null;
+  nearest_school: POIItem | null;
+  nearby_pois: POIItem[];
+  location_summary: string;
+}
+
+function LocationIntelligence({ propertyId }: { propertyId: string }) {
+  const [data, setData] = useState<LocationData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<LocationData>(`/location/${propertyId}`)
+      .then(setData)
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, [propertyId]);
+
+  if (loading) {
+    return (
+      <div className={styles.locationSection}>
+        <h2 className={styles.sectionTitle}>📍 Location Intelligence</h2>
+        <div className={`skeleton ${styles.aiSkeleton}`} />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className={styles.locationSection}>
+        <h2 className={styles.sectionTitle}>📍 Location Intelligence</h2>
+        <div className={styles.aiPlaceholder}>
+          <p>Location data unavailable for this property.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const categories = [
+    { key: 'transit', label: 'Transit', icon: '🚇', value: data.sub_scores.transit },
+    { key: 'schools', label: 'Schools', icon: '🏫', value: data.sub_scores.schools },
+    { key: 'healthcare', label: 'Healthcare', icon: '🏥', value: data.sub_scores.healthcare },
+    { key: 'shopping', label: 'Shopping', icon: '🛒', value: data.sub_scores.shopping },
+    { key: 'parks', label: 'Parks', icon: '🌳', value: data.sub_scores.parks },
+    { key: 'dining', label: 'Dining', icon: '🍽️', value: data.sub_scores.dining },
+  ];
+
+  const scoreColor =
+    data.composite_score >= 80 ? 'var(--color-primary-400)' :
+      data.composite_score >= 60 ? 'var(--color-info)' :
+        data.composite_score >= 40 ? 'var(--color-warning)' : 'var(--color-danger)';
+
+  return (
+    <div className={styles.locationSection}>
+      <h2 className={styles.sectionTitle}>📍 Location Intelligence</h2>
+      <div className={styles.locationCard}>
+        {/* Composite score gauge */}
+        <div className={styles.gaugeRow}>
+          <div className={styles.gauge}>
+            <svg viewBox="0 0 120 120" className={styles.gaugeSvg}>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" strokeWidth="8" />
+              <circle
+                cx="60" cy="60" r="50" fill="none"
+                stroke={scoreColor}
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={`${(data.composite_score / 100) * 314} 314`}
+                transform="rotate(-90 60 60)"
+                style={{ transition: 'stroke-dasharray 1s ease' }}
+              />
+              <text x="60" y="55" textAnchor="middle" className={styles.gaugeScore}>
+                {data.composite_score}
+              </text>
+              <text x="60" y="72" textAnchor="middle" className={styles.gaugeLabel}>
+                {data.rating_label}
+              </text>
+            </svg>
+          </div>
+          <div className={styles.subscoreList}>
+            {categories.map((cat) => (
+              <div key={cat.key} className={styles.subscoreRow}>
+                <span className={styles.subscoreIcon}>{cat.icon}</span>
+                <span className={styles.subscoreName}>{cat.label}</span>
+                <div className={styles.subscoreTrack}>
+                  <div
+                    className={styles.subscoreFill}
+                    style={{ width: `${cat.value}%` }}
+                  />
+                </div>
+                <span className={styles.subscoreValue}>{cat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Nearest POIs */}
+        <div className={styles.poiGrid}>
+          {data.nearest_metro && (
+            <div className={styles.poiCard}>
+              <span className={styles.poiIcon}>🚇</span>
+              <div>
+                <span className={styles.poiName}>{data.nearest_metro.name}</span>
+                <span className={styles.poiDistance}>
+                  {data.nearest_metro.distance_km.toFixed(1)} km · {data.nearest_metro.travel_time_minutes_walk} min walk
+                </span>
+              </div>
+            </div>
+          )}
+          {data.nearest_hospital && (
+            <div className={styles.poiCard}>
+              <span className={styles.poiIcon}>🏥</span>
+              <div>
+                <span className={styles.poiName}>{data.nearest_hospital.name}</span>
+                <span className={styles.poiDistance}>
+                  {data.nearest_hospital.distance_km.toFixed(1)} km · {data.nearest_hospital.travel_time_minutes_drive} min drive
+                </span>
+              </div>
+            </div>
+          )}
+          {data.nearest_school && (
+            <div className={styles.poiCard}>
+              <span className={styles.poiIcon}>🏫</span>
+              <div>
+                <span className={styles.poiName}>{data.nearest_school.name}</span>
+                <span className={styles.poiDistance}>
+                  {data.nearest_school.distance_km.toFixed(1)} km · {data.nearest_school.travel_time_minutes_walk} min walk
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <p className={styles.locationSummaryText}>{data.location_summary}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Investment Potential Section ──────────────────────────────────────────── */
+
+interface YearlyProjection {
+  year: number;
+  projected_value: number;
+  cumulative_gain_pct: number;
+  projected_rental_income: number;
+}
+
+interface InvestmentData {
+  property_id: string;
+  investment_score: number;
+  investment_grade: string;
+  estimated_monthly_rent: number;
+  estimated_annual_rent: number;
+  gross_rental_yield_pct: number;
+  delhi_ncr_average_yield_pct: number;
+  locality_historical_cagr_pct: number;
+  projected_5yr_appreciation_pct: number;
+  projected_5yr_value: number;
+  infrastructure_score: number;
+  demand_supply_ratio: string;
+  growth_catalysts: string[];
+  investment_risks: string[];
+  projections: YearlyProjection[];
+  summary_verdict: string;
+}
+
+function InvestmentPotential({ propertyId }: { propertyId: string }) {
+  const [data, setData] = useState<InvestmentData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<InvestmentData>(`/investment/${propertyId}`)
+      .then(setData)
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  }, [propertyId]);
+
+  if (loading) {
+    return (
+      <div className={styles.investmentSection}>
+        <h2 className={styles.sectionTitle}>📈 Investment Potential</h2>
+        <div className={`skeleton ${styles.aiSkeleton}`} />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className={styles.investmentSection}>
+        <h2 className={styles.sectionTitle}>📈 Investment Potential</h2>
+        <div className={styles.aiPlaceholder}>
+          <p>Investment data unavailable for this property.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const gradeColor =
+    data.investment_grade === 'High Potential' ? 'var(--color-primary-400)' :
+      data.investment_grade === 'Strong' ? 'var(--color-success)' :
+        data.investment_grade === 'Moderate' ? 'var(--color-warning)' : 'var(--color-danger)';
+
+  return (
+    <div className={styles.investmentSection}>
+      <h2 className={styles.sectionTitle}>📈 Investment Potential</h2>
+      <div className={styles.investmentCard}>
+        {/* Investment grade */}
+        <div className={styles.investGradeRow}>
+          <div className={styles.investGrade} style={{ borderColor: gradeColor }}>
+            <span className={styles.investGradeScore}>{data.investment_score}</span>
+            <span className={styles.investGradeLabel} style={{ color: gradeColor }}>
+              {data.investment_grade}
+            </span>
+          </div>
+          <div className={styles.investMetrics}>
+            <div className={styles.investMetric}>
+              <span className={styles.investMetricValue}>
+                {data.gross_rental_yield_pct.toFixed(1)}%
+              </span>
+              <span className={styles.investMetricLabel}>Rental Yield</span>
+              <span className={styles.investMetricSub}>
+                vs {data.delhi_ncr_average_yield_pct}% avg
+              </span>
+            </div>
+            <div className={styles.investMetric}>
+              <span className={styles.investMetricValue}>
+                {formatPercent(data.locality_historical_cagr_pct)}
+              </span>
+              <span className={styles.investMetricLabel}>3-yr CAGR</span>
+            </div>
+            <div className={styles.investMetric}>
+              <span className={styles.investMetricValue}>
+                {data.infrastructure_score}/100
+              </span>
+              <span className={styles.investMetricLabel}>Infrastructure</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Growth catalysts & risks */}
+        <div className={styles.catalystSection}>
+          {data.growth_catalysts.length > 0 && (
+            <div className={styles.catalystGroup}>
+              <span className={styles.catalystGroupLabel}>Growth Catalysts</span>
+              <div className={styles.catalystPills}>
+                {data.growth_catalysts.map((c, i) => (
+                  <span key={i} className={styles.catalystPill}>🚀 {c}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {data.investment_risks.length > 0 && (
+            <div className={styles.catalystGroup}>
+              <span className={styles.catalystGroupLabel}>Risks</span>
+              <div className={styles.catalystPills}>
+                {data.investment_risks.map((r, i) => (
+                  <span key={i} className={styles.riskPill}>⚠️ {r}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 5-year projection table */}
+        {data.projections.length > 0 && (
+          <div className={styles.projectionSection}>
+            <h3 className={styles.projectionTitle}>5-Year Capital Appreciation Projection</h3>
+            <div className={styles.projectionTable}>
+              <div className={styles.projectionHeader}>
+                <span>Year</span>
+                <span>Projected Value</span>
+                <span>Gain</span>
+                <span>Rental Income</span>
+              </div>
+              {data.projections.map((proj) => (
+                <div key={proj.year} className={styles.projectionRow}>
+                  <span className={styles.projYear}>{proj.year}</span>
+                  <span className={styles.projValue}>{formatINR(proj.projected_value)}</span>
+                  <span className={styles.projGain}>{formatPercent(proj.cumulative_gain_pct)}</span>
+                  <span className={styles.projRental}>{formatINR(proj.projected_rental_income)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className={styles.verdictText}>{data.summary_verdict}</p>
       </div>
     </div>
   );

@@ -277,7 +277,328 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Location Intelligence ──────────────────────────────────────────────── */
+
+.locationSection { margin-bottom: var(--space-8); }
+
+.locationCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.gaugeRow {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.gauge { flex-shrink: 0; width: 140px; height: 140px; }
+
+.gaugeSvg { width: 100%; height: 100%; }
+
+.gaugeScore {
+  font-size: 28px;
+  font-weight: 700;
+  fill: var(--text-primary);
+}
+
+.gaugeLabel {
+  font-size: 10px;
+  font-weight: 500;
+  fill: var(--text-muted);
+}
+
+.subscoreList { flex: 1; display: flex; flex-direction: column; gap: var(--space-3); }
+
+.subscoreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.subscoreIcon { font-size: var(--fs-sm); width: 20px; text-align: center; }
+
+.subscoreName {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  min-width: 80px;
+  font-weight: var(--fw-medium);
+}
+
+.subscoreTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.subscoreFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary-600), var(--color-primary-400));
+  border-radius: var(--radius-full);
+  transition: width 0.8s ease;
+}
+
+.subscoreValue {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-400);
+  min-width: 25px;
+  text-align: right;
+}
+
+.poiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.poiCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.poiIcon { font-size: var(--fs-xl); }
+
+.poiName {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+
+.poiDistance {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.locationSummaryText {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+}
+
+/* ── Investment Potential ────────────────────────────────────────────────── */
+
+.investmentSection { margin-bottom: var(--space-8); }
+
+.investmentCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.investGradeRow {
+  display: flex;
+  gap: var(--space-6);
+  align-items: center;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.investGrade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-full);
+  border: 3px solid;
+  flex-shrink: 0;
+}
+
+.investGradeScore {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.investGradeLabel {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: var(--space-1);
+}
+
+.investMetrics {
+  display: flex;
+  gap: var(--space-6);
+  flex: 1;
+}
+
+.investMetric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+}
+
+.investMetricValue {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary-400);
+}
+
+.investMetricLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.investMetricSub {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.catalystSection {
+  margin-bottom: var(--space-6);
+}
+
+.catalystGroup {
+  margin-bottom: var(--space-4);
+}
+
+.catalystGroupLabel {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catalystPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.catalystPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-primary-400);
+}
+
+.riskPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.projectionSection {
+  margin-bottom: var(--space-4);
+}
+
+.projectionTitle {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.projectionTable {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.projectionHeader {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 2fr;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.projectionRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 2fr;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid rgba(51, 65, 85, 0.3);
+  font-size: var(--fs-sm);
+  transition: background var(--transition-fast);
+}
+
+.projectionRow:hover {
+  background: var(--bg-card-hover);
+}
+
+.projYear {
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.projValue {
+  color: var(--text-primary);
+  font-weight: var(--fw-medium);
+}
+
+.projGain {
+  color: var(--color-primary-400);
+  font-weight: var(--fw-semibold);
+}
+
+.projRental {
+  color: var(--text-secondary);
+}
+
+.verdictText {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .price { font-size: var(--fs-2xl); }
   .specsGrid { grid-template-columns: repeat(2, 1fr); }
+  .gaugeRow { flex-direction: column; }
+  .gauge { width: 120px; height: 120px; }
+  .investGradeRow { flex-direction: column; }
+  .investMetrics { flex-wrap: wrap; }
+  .poiGrid { grid-template-columns: 1fr; }
+  .projectionHeader, .projectionRow { grid-template-columns: 1fr 1.5fr 1fr 1.5fr; font-size: var(--fs-xs); }
 }
+
