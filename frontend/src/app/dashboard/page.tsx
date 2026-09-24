@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
-import { formatINR, formatDate } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import styles from './page.module.css';
 
 interface SavedItem {
@@ -98,14 +99,14 @@ export default function DashboardPage() {
             {savedProperties.length === 0 ? (
               <div className={styles.empty}>
                 <p>No saved properties yet. Browse and save properties you&apos;re interested in.</p>
-                <a href="/properties" className="btn btn-primary btn-sm">
+                <Link href="/properties" className="btn btn-primary btn-sm">
                   Browse Properties
-                </a>
+                </Link>
               </div>
             ) : (
               <div className={styles.list}>
                 {savedProperties.map((item) => (
-                  <a
+                  <Link
                     key={item.id}
                     href={`/properties/${item.property_id}`}
                     className={styles.listItem}
@@ -115,7 +116,7 @@ export default function DashboardPage() {
                       <span className={styles.listTitle}>Property</span>
                       <span className={styles.listMeta}>Saved {formatDate(item.created_at)}</span>
                     </div>
-                  </a>
+                  </Link>
                 ))}
               </div>
             )}
@@ -127,9 +128,9 @@ export default function DashboardPage() {
             {searchHistory.length === 0 ? (
               <div className={styles.empty}>
                 <p>No search history yet. Start exploring Delhi-NCR properties.</p>
-                <a href="/properties" className="btn btn-primary btn-sm">
+                <Link href="/properties" className="btn btn-primary btn-sm">
                   Start Searching
-                </a>
+                </Link>
               </div>
             ) : (
               <div className={styles.list}>
@@ -151,12 +152,12 @@ export default function DashboardPage() {
 
         {/* Quick actions */}
         <div className={styles.actions}>
-          <a href="/properties" className="btn btn-primary">
+          <Link href="/properties" className="btn btn-primary">
             🔍 Search Properties
-          </a>
-          <a href="/properties" className="btn btn-secondary">
+          </Link>
+          <Link href="/properties" className="btn btn-secondary">
             📊 Get AI Valuations
-          </a>
+          </Link>
         </div>
       </div>
     </div>

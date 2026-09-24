@@ -160,21 +160,23 @@ function SpecItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AIValuation({ propertyId, listingPrice }: { propertyId: string; listingPrice: number }) {
-  const [valuation, setValuation] = useState<{
-    predicted_value: number;
-    confidence_low: number;
-    confidence_high: number;
-    confidence_score: number;
-    pricing_classification: string;
-    price_gap_pct: number;
-    shap_values: Record<string, number>;
-  } | null>(null);
+interface PropertyValuation {
+  predicted_value: number;
+  confidence_low: number;
+  confidence_high: number;
+  confidence_score: number;
+  pricing_classification: string;
+  price_gap_pct: number;
+  shap_values: Record<string, number>;
+}
+
+function AIValuation({ propertyId }: { propertyId: string; listingPrice: number }) {
+  const [valuation, setValuation] = useState<PropertyValuation | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
-      .get<any>(`/valuations/${propertyId}`)
+      .get<PropertyValuation>(`/valuations/${propertyId}`)
       .then(setValuation)
       .catch(() => { })
       .finally(() => setLoading(false));

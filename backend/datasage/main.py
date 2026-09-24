@@ -6,17 +6,57 @@ See docs/08-backend-architecture.md for the full backend design.
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from datasage.core.config import settings
-from datasage.core.database import init_db
+from datasage.core.database import engine, init_db
 from datasage.core.exceptions import DataSageError
 from datasage.core.middleware import RequestIDMiddleware, RequestLoggingMiddleware
 
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Application startup and shutdown lifecycle."""
+    logging.basicConfig(
+        level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO),
+        format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    )
+    await init_db()
+    logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
+
+    # In development, auto-create tables and seed data
+    if settings.APP_ENV == "development":
+        try:
+            from datasage.cli.seed import create_tables, run_seed
+            from datasage.core.database import async_session_factory
+            from sqlalchemy import text
+
+            await create_tables()
+
+            # Check if data already seeded
+            async with async_session_factory() as session:
+                result = await session.execute(text("SELECT COUNT(*) FROM city"))
+                count = result.scalar() or 0
+
+            if count == 0:
+                logger.info("Development mode: auto-seeding database...")
+                await run_seed(count=500)
+                logger.info("Auto-seeding complete.")
+        except Exception as e:
+            logger.warning("Auto-setup skipped: %s", e)
+
+    yield  # Application runs here
+
+    # Shutdown
+    await engine.dispose()
+    logger.info("DataSage shut down gracefully.")
 
 
 def create_app() -> FastAPI:
@@ -28,6 +68,7 @@ def create_app() -> FastAPI:
         docs_url="/docs" if settings.APP_DEBUG else None,
         redoc_url="/redoc" if settings.APP_DEBUG else None,
         openapi_url="/openapi.json" if settings.APP_DEBUG else None,
+        lifespan=lifespan,
     )
 
     # ── Middleware (outermost → innermost) ──────────────────────────────────
@@ -52,7 +93,7 @@ def create_app() -> FastAPI:
                     "code": exc.code,
                     "message": exc.message,
                     "request_id": request_id,
-                    **({"details": exc.details} if exc.details else {}),
+                    **({} if not exc.details else {"details": exc.details}),
                 }
             },
         )
@@ -76,41 +117,43 @@ def create_app() -> FastAPI:
     # ── Routers ────────────────────────────────────────────────────────────
     _register_routers(app)
 
-    # ── Lifecycle events ───────────────────────────────────────────────────
-    @app.on_event("startup")
-    async def startup() -> None:
-        logging.basicConfig(
-            level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO),
-            format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        )
-        await init_db()
-        logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
-
-        # In development, auto-create tables and seed data
-        if settings.APP_ENV == "development":
-            try:
-                from datasage.cli.seed import create_tables, run_seed
-                from datasage.core.database import async_session_factory
-                from sqlalchemy import text
-
-                await create_tables()
-
-                # Check if data already seeded
-                async with async_session_factory() as session:
-                    result = await session.execute(text("SELECT COUNT(*) FROM city"))
-                    count = result.scalar() or 0
-
-                if count == 0:
-                    logger.info("Development mode: auto-seeding database...")
-                    await run_seed(count=500)
-                    logger.info("Auto-seeding complete.")
-            except Exception as e:
-                logger.warning("Auto-setup skipped: %s", e)
-
     # ── Health check ───────────────────────────────────────────────────────
     @app.get("/health", tags=["System"])
     async def health() -> dict:
-        return {"status": "ok", "version": settings.APP_VERSION, "env": settings.APP_ENV}
+        """Health check with DB and Redis connectivity verification."""
+        from sqlalchemy import text as sa_text
+
+        from datasage.core.database import async_session_factory
+
+        checks: dict[str, str] = {"api": "ok"}
+
+        # Database check
+        try:
+            async with async_session_factory() as session:
+                await session.execute(sa_text("SELECT 1"))
+            checks["database"] = "ok"
+        except Exception:
+            checks["database"] = "error"
+
+        # Redis check
+        try:
+            import redis.asyncio as aioredis
+
+            r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+            await r.ping()
+            await r.aclose()
+            checks["redis"] = "ok"
+        except Exception:
+            checks["redis"] = "unavailable"
+
+        overall = "healthy" if checks.get("database") == "ok" else "degraded"
+
+        return {
+            "status": overall,
+            "version": settings.APP_VERSION,
+            "env": settings.APP_ENV,
+            "checks": checks,
+        }
 
     return app
 

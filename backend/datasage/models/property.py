@@ -50,6 +50,12 @@ class Property(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
     location = relationship(
         "PropertyLocation", back_populates="property", uselist=False, lazy="selectin"
     )
+    locality = relationship(
+        "Locality",
+        primaryjoin="Property.locality_id == foreign(Locality.id)",
+        lazy="noload",
+        viewonly=True,
+    )
 
     __table_args__ = (
         Index(
