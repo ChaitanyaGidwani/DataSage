@@ -49,10 +49,9 @@ async def get_admin_stats(
         "total_properties": total_properties,
         "total_valuations": total_valuations,
         "total_localities": total_localities,
-        "total_users": total_users,
-        "active_model_version": "v1.0.0-xgb",
-        "system_status": "healthy",
-        "environment": "development",
+        "active_users": total_users,
+        "model_version": "heuristic-v1",
+        "health_status": "healthy",
     }
 
 
@@ -64,4 +63,4 @@ async def trigger_bulk_valuations(
     """Trigger bulk valuation for unpredicted properties."""
     service = ValuationService(session)
     preds = await service.bulk_predict(limit=limit)
-    return {"status": "success", "valuations_generated": len(preds)}
+    return {"status": "success", "valuations_created": len(preds)}

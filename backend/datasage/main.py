@@ -6,8 +6,8 @@ See docs/08-backend-architecture.md for the full backend design.
 from __future__ import annotations
 
 import logging
-from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from datasage.core.config import settings
-from datasage.core.database import init_db
+from datasage.core.database import engine, init_db
 from datasage.core.exceptions import DataSageError
 from datasage.core.middleware import RequestIDMiddleware, RequestLoggingMiddleware
 
@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan — startup and shutdown hooks."""
-    # ── Startup ────────────────────────────────────────────────────────────
+    """Application startup and shutdown lifecycle."""
     logging.basicConfig(
         level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO),
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
@@ -57,15 +56,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         except Exception as e:
             logger.warning("Auto-setup skipped: %s", e)
 
-    yield
+    yield  # Application runs here
 
-    # ── Shutdown ───────────────────────────────────────────────────────────
+    # Shutdown
     try:
         from datasage.core.redis import close_redis
         await close_redis()
     except Exception:
         pass
-    logger.info("DataSage shutting down.")
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
+    logger.info("DataSage shut down gracefully.")
 
 
 def create_app() -> FastAPI:
@@ -102,7 +105,7 @@ def create_app() -> FastAPI:
                     "code": exc.code,
                     "message": exc.message,
                     "request_id": request_id,
-                    **({"details": exc.details} if exc.details else {}),
+                    **({} if not exc.details else {"details": exc.details}),
                 }
             },
         )
@@ -129,15 +132,31 @@ def create_app() -> FastAPI:
     # ── Health check ───────────────────────────────────────────────────────
     @app.get("/health", tags=["System"])
     async def health() -> dict[str, Any]:
+        """Health check with DB and Redis connectivity verification."""
+        from sqlalchemy import text as sa_text
+
+        from datasage.core.database import async_session_factory
         from datasage.core.redis import is_redis_available
+
+        checks: dict[str, str] = {"api": "ok"}
+
+        # Database check
+        try:
+            async with async_session_factory() as session:
+                await session.execute(sa_text("SELECT 1"))
+            checks["database"] = "ok"
+        except Exception:
+            checks["database"] = "unavailable"
+
+        # Redis check
         redis_ok = await is_redis_available()
+        checks["redis"] = "ok" if redis_ok else "unavailable"
+
         return {
             "status": "ok",
             "version": settings.APP_VERSION,
             "env": settings.APP_ENV,
-            "services": {
-                "redis": "connected" if redis_ok else "unavailable",
-            },
+            "checks": checks,
         }
 
     return app

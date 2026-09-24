@@ -160,7 +160,7 @@ function SpecItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-interface ValuationData {
+interface PropertyValuation {
   predicted_value: number;
   confidence_low: number;
   confidence_high: number;
@@ -171,12 +171,12 @@ interface ValuationData {
 }
 
 function AIValuation({ propertyId }: { propertyId: string }) {
-  const [valuation, setValuation] = useState<ValuationData | null>(null);
+  const [valuation, setValuation] = useState<PropertyValuation | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
-      .get<ValuationData>(`/valuations/${propertyId}`)
+      .get<PropertyValuation>(`/valuations/${propertyId}`)
       .then(setValuation)
       .catch(() => { })
       .finally(() => setLoading(false));
