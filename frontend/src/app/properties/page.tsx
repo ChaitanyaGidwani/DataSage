@@ -72,8 +72,36 @@ function PropertiesContent() {
   }, [bhk, minPrice, maxPrice, propertyType]);
 
   useEffect(() => {
-    fetchProperties();
-  }, [fetchProperties]);
+    let ignore = false;
+    const fetchInitial = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (bhk) params.set('bhk', bhk);
+        if (minPrice) params.set('min_price', minPrice);
+        if (maxPrice) params.set('max_price', maxPrice);
+        if (propertyType) params.set('property_type', propertyType);
+        params.set('limit', '20');
+
+        const response = await api.get<SearchResponse>(`/properties?${params.toString()}`);
+        if (!ignore) {
+          setProperties(response.data);
+          setTotalCount(response.pagination.total_count);
+          setNextCursor(response.pagination.next_cursor);
+        }
+      } catch {
+        // Error handled by API client
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchInitial();
+    return () => {
+      ignore = true;
+    };
+  }, [bhk, minPrice, maxPrice, propertyType]);
 
   const handleFilter = () => {
     fetchProperties();

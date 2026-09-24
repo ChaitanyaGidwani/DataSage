@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -45,7 +46,6 @@ async def init_db() -> None:
     """Verify database connectivity on startup."""
     async with engine.begin() as conn:
         await conn.execute(
-            # language=sql
-            __import__("sqlalchemy").text("SELECT 1")
+            text("SELECT 1")
         )
     logger.info("Database connection verified.")

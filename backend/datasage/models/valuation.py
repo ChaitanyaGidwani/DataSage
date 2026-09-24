@@ -5,9 +5,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, Index, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datasage.models.base import Base, UUIDMixin
 
@@ -37,8 +37,12 @@ class ValuationPrediction(UUIDMixin, Base):
 
     __tablename__ = "valuation_prediction"
 
-    property_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    model_version_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("property.id", ondelete="CASCADE"), nullable=False
+    )
+    model_version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("model_version.id", ondelete="RESTRICT"), nullable=False
+    )
     predicted_value: Mapped[int] = mapped_column(Integer, nullable=False)
     confidence_low: Mapped[int] = mapped_column(Integer, nullable=False)
     confidence_high: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -50,6 +54,10 @@ class ValuationPrediction(UUIDMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    # Relationships
+    property = relationship("Property", back_populates="valuations")
+    model_version = relationship("ModelVersion")
 
     __table_args__ = (
         Index("idx_valuation_property", "property_id"),

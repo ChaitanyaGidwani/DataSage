@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from geoalchemy2 import Geography
-from sqlalchemy import DateTime, Float, Index, Integer, SmallInteger, String
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, SmallInteger, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,7 +19,7 @@ class PropertyLocation(UUIDMixin, Base):
     __tablename__ = "property_location"
 
     property_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, unique=True, index=True
+        UUID(as_uuid=True), ForeignKey("property.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
     )
     coordinates: Mapped[str] = mapped_column(
         Geography("POINT", srid=4326), nullable=False
@@ -46,7 +46,9 @@ class POI(Base):
     __tablename__ = "poi"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    city_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    city_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("city.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     category: Mapped[str] = mapped_column(String(30), nullable=False)
     coordinates: Mapped[str] = mapped_column(
@@ -70,7 +72,9 @@ class NearbyPOI(Base):
     __tablename__ = "nearby_poi"
 
     property_location_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True
+        UUID(as_uuid=True), ForeignKey("property_location.id", ondelete="CASCADE"), primary_key=True
     )
-    poi_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    poi_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("poi.id", ondelete="CASCADE"), primary_key=True
+    )
     distance_meters: Mapped[float] = mapped_column(Float, nullable=False)

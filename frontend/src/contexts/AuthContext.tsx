@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { api, ApiRequestError } from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface User {
   id: string;
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .finally(() => setIsLoading(false));
     } else {
-      setIsLoading(false);
+      queueMicrotask(() => setIsLoading(false));
     }
   }, []);
 

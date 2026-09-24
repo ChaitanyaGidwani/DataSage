@@ -84,10 +84,15 @@ class PropertyService:
         location = None
         if prop.location:
             location = PropertyLocationResponse(
-                latitude=None,  # Parse from geography in Phase 2
-                longitude=None,
+                latitude=prop.latitude,
+                longitude=prop.longitude,
                 full_address=prop.location.full_address,
                 pin_code=prop.location.pin_code,
+            )
+        elif prop.latitude is not None and prop.longitude is not None:
+            location = PropertyLocationResponse(
+                latitude=prop.latitude,
+                longitude=prop.longitude,
             )
 
         # Images

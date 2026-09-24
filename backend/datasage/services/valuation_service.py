@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.models.property import Property
 from datasage.models.reference import Locality
-from datasage.models.valuation import ValuationPrediction
+from datasage.models.valuation import ModelVersion, ValuationPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -154,10 +154,25 @@ class ValuationService:
             "parking": round((parking_adj - 1.0) * predicted_value, 0),
         }
 
+        # Ensure baseline heuristic model version exists in DB
+        heuristic_model_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+        mv_res = await self.session.execute(
+            select(ModelVersion).where(ModelVersion.id == heuristic_model_id)
+        )
+        if not mv_res.scalar_one_or_none():
+            mv = ModelVersion(
+                id=heuristic_model_id,
+                version_label="v0.1-heuristic",
+                algorithm="heuristic",
+                is_active=True,
+            )
+            self.session.add(mv)
+            await self.session.flush()
+
         # Store prediction
         prediction = ValuationPrediction(
             property_id=prop.id,
-            model_version_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),  # Heuristic model
+            model_version_id=heuristic_model_id,
             predicted_value=predicted_value,
             confidence_low=confidence_low,
             confidence_high=confidence_high,

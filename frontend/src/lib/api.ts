@@ -61,6 +61,7 @@ class ApiClient {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       if (typeof window !== 'undefined') {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.href = '/login';
       }
     }

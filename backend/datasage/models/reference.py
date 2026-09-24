@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from geoalchemy2 import Geography
-from sqlalchemy import Boolean, Float, Index, Integer, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,6 +24,7 @@ class City(Base):
 
     # Relationships
     localities = relationship("Locality", back_populates="city", lazy="selectin")
+    properties = relationship("Property", back_populates="city", lazy="select")
 
 
 class Locality(Base):
@@ -32,7 +33,9 @@ class Locality(Base):
     __tablename__ = "locality"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    city_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    city_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("city.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     centroid_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -43,6 +46,7 @@ class Locality(Base):
 
     # Relationships
     city = relationship("City", back_populates="localities", lazy="joined")
+    properties = relationship("Property", back_populates="locality", lazy="select")
 
     __table_args__ = (
         Index("idx_locality_city_name", "city_id", "name"),

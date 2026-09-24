@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, Integer, String, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,8 +17,12 @@ class Recommendation(UUIDMixin, Base):
 
     __tablename__ = "recommendation"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    property_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("property.id", ondelete="CASCADE"), nullable=False
+    )
     suitability_score: Mapped[float] = mapped_column(Float, nullable=False)
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
@@ -36,7 +40,7 @@ class RecommendationReason(UUIDMixin, Base):
     __tablename__ = "recommendation_reason"
 
     recommendation_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("recommendation.id", ondelete="CASCADE"), nullable=False, index=True
     )
     reason_type: Mapped[str] = mapped_column(String(50), nullable=False)
     reason_text: Mapped[str] = mapped_column(String(500), nullable=False)

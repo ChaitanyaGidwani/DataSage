@@ -38,8 +38,9 @@ class SavedPropertyRepository:
                 SavedProperty.property_id == property_id,
             )
         )
-        if existing.scalar_one_or_none():
-            return existing.scalar_one_or_none()
+        existing_item = existing.scalar_one_or_none()
+        if existing_item:
+            return existing_item
 
         saved = SavedProperty(user_id=user_id, property_id=property_id)
         self.session.add(saved)

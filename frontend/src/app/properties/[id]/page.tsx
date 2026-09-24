@@ -129,7 +129,7 @@ export default function PropertyDetailPage() {
             )}
 
             {/* AI Analysis — Live valuation */}
-            <AIValuation propertyId={property.id} listingPrice={property.listing_price} />
+            <AIValuation propertyId={property.id} />
 
             {/* Metadata */}
             <div className={styles.meta}>
@@ -154,21 +154,23 @@ function SpecItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AIValuation({ propertyId, listingPrice }: { propertyId: string; listingPrice: number }) {
-  const [valuation, setValuation] = useState<{
-    predicted_value: number;
-    confidence_low: number;
-    confidence_high: number;
-    confidence_score: number;
-    pricing_classification: string;
-    price_gap_pct: number;
-    shap_values: Record<string, number>;
-  } | null>(null);
+interface ValuationData {
+  predicted_value: number;
+  confidence_low: number;
+  confidence_high: number;
+  confidence_score: number;
+  pricing_classification: string;
+  price_gap_pct: number;
+  shap_values: Record<string, number>;
+}
+
+function AIValuation({ propertyId }: { propertyId: string }) {
+  const [valuation, setValuation] = useState<ValuationData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api
-      .get<any>(`/valuations/${propertyId}`)
+      .get<ValuationData>(`/valuations/${propertyId}`)
       .then(setValuation)
       .catch(() => {})
       .finally(() => setLoading(false));
