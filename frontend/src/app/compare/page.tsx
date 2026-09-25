@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { formatINR } from '@/lib/formatters';
+import { formatINR, formatFurnishing, formatFacing } from '@/lib/formatters';
 import styles from './page.module.css';
 
 interface ComparisonItem {
@@ -287,7 +287,7 @@ function CompareContent() {
                   </div>
                   <div className={styles.metricRow}>
                     <span className={styles.metricLabel}>Furnishing</span>
-                    <span className={styles.metricValue}>{prop.furnishing?.replace('_', ' ') || '—'}</span>
+                    <span className={styles.metricValue}>{prop.furnishing ? formatFurnishing(prop.furnishing) : '—'}</span>
                   </div>
 
                   {(prop.key_advantages.length > 0 || prop.key_tradeoffs.length > 0) && (

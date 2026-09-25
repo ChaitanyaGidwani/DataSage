@@ -89,14 +89,45 @@ class ValuationService:
 
     async def predict_value(self, property_id: str) -> dict[str, Any]:
         """Generate a valuation prediction for a single property."""
+        try:
+            prop_uuid = uuid.UUID(str(property_id))
+        except (ValueError, AttributeError):
+            from datasage.core.exceptions import NotFoundError
+            raise NotFoundError("Property", str(property_id))
+
         # Fetch property
         result = await self.session.execute(
-            select(Property).where(Property.id == uuid.UUID(property_id))
+            select(Property).where(Property.id == prop_uuid)
         )
         prop = result.scalar_one_or_none()
         if not prop:
             from datasage.core.exceptions import NotFoundError
-            raise NotFoundError("Property", property_id)
+            raise NotFoundError("Property", str(property_id))
+
+        model_version_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+
+        # Check if prediction already exists
+        existing_res = await self.session.execute(
+            select(ValuationPrediction).where(
+                ValuationPrediction.property_id == prop.id,
+                ValuationPrediction.model_version_id == model_version_id,
+            )
+        )
+        existing = existing_res.scalar_one_or_none()
+
+        # If existing has valid shap_values and prediction, return it directly
+        if existing and existing.predicted_value and existing.shap_values:
+            return {
+                "property_id": str(prop.id),
+                "listing_price": prop.listing_price,
+                "predicted_value": existing.predicted_value,
+                "confidence_low": existing.confidence_low,
+                "confidence_high": existing.confidence_high,
+                "confidence_score": existing.confidence_score,
+                "pricing_classification": existing.pricing_classification,
+                "price_gap_pct": existing.price_gap_pct,
+                "shap_values": existing.shap_values,
+            }
 
         # Check Redis cache for recent valuation prediction
         from datasage.core.config import settings
@@ -179,20 +210,30 @@ class ValuationService:
             self.session.add(mv)
             await self.session.flush()
 
-        # Store prediction
-        prediction = ValuationPrediction(
-            property_id=prop.id,
-            model_version_id=heuristic_model_id,
-            predicted_value=predicted_value,
-            confidence_low=confidence_low,
-            confidence_high=confidence_high,
-            confidence_score=confidence_score,
-            pricing_classification=classification,
-            price_gap_pct=round(gap_pct, 2),
-            shap_values=shap_values,
-        )
-        self.session.add(prediction)
-        await self.session.flush()
+        # Store or update prediction
+        if existing:
+            existing.predicted_value = predicted_value
+            existing.confidence_low = confidence_low
+            existing.confidence_high = confidence_high
+            existing.confidence_score = confidence_score
+            existing.pricing_classification = classification
+            existing.price_gap_pct = round(gap_pct, 2)
+            existing.shap_values = shap_values
+            await self.session.flush()
+        else:
+            prediction = ValuationPrediction(
+                property_id=prop.id,
+                model_version_id=heuristic_model_id,
+                predicted_value=predicted_value,
+                confidence_low=confidence_low,
+                confidence_high=confidence_high,
+                confidence_score=confidence_score,
+                pricing_classification=classification,
+                price_gap_pct=round(gap_pct, 2),
+                shap_values=shap_values,
+            )
+            self.session.add(prediction)
+            await self.session.flush()
 
         response_data = {
             "property_id": str(prop.id),

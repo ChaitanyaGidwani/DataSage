@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
-import { formatINR, formatArea, formatPropertyType, formatDate, formatPercent } from '@/lib/formatters';
+import { formatINR, formatArea, formatPropertyType, formatDate, formatPercent, formatFacing, formatFurnishing } from '@/lib/formatters';
 import styles from './page.module.css';
 
 interface PropertyDetail {
@@ -108,10 +108,10 @@ export default function PropertyDetailPage() {
               {property.floor_number != null && (
                 <SpecItem label="Floor" value={`${property.floor_number}/${property.total_floors || '—'}`} />
               )}
-              {property.facing && <SpecItem label="Facing" value={property.facing} />}
+              {property.facing && <SpecItem label="Facing" value={formatFacing(property.facing)} />}
               {property.construction_year && <SpecItem label="Built" value={`${property.construction_year}`} />}
               {property.furnishing && (
-                <SpecItem label="Furnishing" value={property.furnishing.replace('_', ' ')} />
+                <SpecItem label="Furnishing" value={formatFurnishing(property.furnishing)} />
               )}
               <SpecItem label="Parking" value={`${property.parking_count}`} />
               <SpecItem label="Balconies" value={`${property.balcony_count}`} />

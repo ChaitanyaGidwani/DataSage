@@ -33,6 +33,24 @@ class PropertyService:
         """Search properties with filters and pagination."""
         properties, next_cursor, total = await self.property_repo.search(**params)
 
+        # Batch fetch valuation predictions for the page
+        prop_ids = [p.id for p in properties]
+        val_map: dict[uuid.UUID, ValuationSummary] = {}
+        if prop_ids:
+            from sqlalchemy import select
+            from datasage.models.valuation import ValuationPrediction
+            from datasage.schemas.property import ValuationSummary
+
+            val_res = await self.session.execute(
+                select(ValuationPrediction).where(ValuationPrediction.property_id.in_(prop_ids))
+            )
+            for v in val_res.scalars().all():
+                val_map[v.property_id] = ValuationSummary(
+                    predicted_value=v.predicted_value,
+                    pricing_classification=v.pricing_classification,
+                    price_gap_pct=v.price_gap_pct,
+                )
+
         # Build summary responses
         summaries = []
         for prop in properties:
@@ -60,6 +78,7 @@ class PropertyService:
                     listing_price=prop.listing_price,
                     locality=locality_summary,
                     primary_image_url=primary_image,
+                    valuation_summary=val_map.get(prop.id),
                     location_score=prop.cached_location_score,
                     listed_at=prop.listed_at,
                 )
