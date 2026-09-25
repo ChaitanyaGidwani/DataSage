@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 
-def test_health_check(client: TestClient):
+def test_health_check(client: TestClient) -> None:
     """Test health endpoint returns status 200 and correct JSON structure."""
     response = client.get("/health")
     assert response.status_code == 200

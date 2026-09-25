@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from datasage.models.property import Property
 
 
-def test_get_location_intelligence(client: TestClient, mock_property: Property):
+def test_get_location_intelligence(client: TestClient, mock_property: Property) -> None:
     """Test GET /api/v1/location/{property_id} returns composite and sub-scores."""
     response = client.get(f"/api/v1/location/{mock_property.id}")
     assert response.status_code == 200

@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.api.deps import get_current_user_optional
 from datasage.core.database import get_session
+from datasage.models.user import User
 from datasage.schemas import CursorPagination, PaginatedResponse
+from datasage.schemas.investment import InvestmentAnalysisResponse
+from datasage.schemas.location import LocationScoreResponse
 from datasage.schemas.property import (
     PropertyDetailResponse,
     PropertySearchParams,
@@ -35,9 +41,9 @@ async def search_properties(
     order: SortOrder = SortOrder.DESC,
     limit: int = Query(20, ge=1, le=100),
     cursor: str | None = None,
-    session=Depends(get_session),
-    user=Depends(get_current_user_optional),
-):
+    session: AsyncSession = Depends(get_session),
+    user: User | None = Depends(get_current_user_optional),
+) -> PaginatedResponse[PropertySummaryResponse]:
     """Search properties with filters, sorting, and pagination."""
     service = PropertyService(session)
 
@@ -79,8 +85,8 @@ async def search_properties(
 @router.get("/{property_id}", response_model=PropertyDetailResponse)
 async def get_property_detail(
     property_id: str,
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> PropertyDetailResponse:
     """Get full property detail by ID."""
     service = PropertyService(session)
     return await service.get_detail(property_id)
@@ -89,8 +95,8 @@ async def get_property_detail(
 @router.get("/{property_id}/valuation")
 async def get_property_valuation_subroute(
     property_id: str,
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
     """Get AI valuation for a specific property (nested endpoint)."""
     from datasage.services.valuation_service import ValuationService
 
@@ -101,8 +107,8 @@ async def get_property_valuation_subroute(
 @router.get("/{property_id}/location")
 async def get_property_location_subroute(
     property_id: str,
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> LocationScoreResponse:
     """Get location intelligence for a specific property (nested endpoint)."""
     from datasage.services.location_service import LocationService
 
@@ -113,8 +119,8 @@ async def get_property_location_subroute(
 @router.get("/{property_id}/investment")
 async def get_property_investment_subroute(
     property_id: str,
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> InvestmentAnalysisResponse:
     """Get investment potential analysis for a specific property (nested endpoint)."""
     from datasage.services.investment_service import InvestmentService
 
@@ -126,8 +132,8 @@ async def get_property_investment_subroute(
 async def get_similar_properties(
     property_id: str,
     limit: int = Query(4, ge=1, le=10),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> list[PropertySummaryResponse]:
     """Get 3-5 similar properties based on locality, BHK, and price range."""
     service = PropertyService(session)
     return await service.get_similar(property_id, limit=limit)

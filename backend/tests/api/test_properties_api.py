@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from datasage.models.property import Property
 
 
-def test_search_properties(client: TestClient):
+def test_search_properties(client: TestClient) -> None:
     """Test searching properties returns paginated response with data list."""
     response = client.get("/api/v1/properties?bhk=3&limit=10")
     assert response.status_code == 200
@@ -16,7 +16,7 @@ def test_search_properties(client: TestClient):
     assert len(body["data"]) >= 1
 
 
-def test_get_property_detail(client: TestClient, mock_property: Property):
+def test_get_property_detail(client: TestClient, mock_property: Property) -> None:
     """Test getting single property details."""
     response = client.get(f"/api/v1/properties/{mock_property.id}")
     assert response.status_code == 200
@@ -27,14 +27,14 @@ def test_get_property_detail(client: TestClient, mock_property: Property):
     assert data["locality"]["name"] == "Sector 75"
 
 
-def test_get_property_detail_not_found(client: TestClient):
+def test_get_property_detail_not_found(client: TestClient) -> None:
     """Test 404 response for non-existent property UUID."""
     random_uuid = uuid.uuid4()
     response = client.get(f"/api/v1/properties/{random_uuid}")
     assert response.status_code == 404
 
 
-def test_get_property_valuation_subroute(client: TestClient, mock_property: Property):
+def test_get_property_valuation_subroute(client: TestClient, mock_property: Property) -> None:
     """Test nested GET /api/v1/properties/{id}/valuation subroute."""
     response = client.get(f"/api/v1/properties/{mock_property.id}/valuation")
     assert response.status_code == 200
@@ -44,7 +44,7 @@ def test_get_property_valuation_subroute(client: TestClient, mock_property: Prop
     assert "pricing_classification" in data
 
 
-def test_get_property_location_subroute(client: TestClient, mock_property: Property):
+def test_get_property_location_subroute(client: TestClient, mock_property: Property) -> None:
     """Test nested GET /api/v1/properties/{id}/location subroute."""
     response = client.get(f"/api/v1/properties/{mock_property.id}/location")
     assert response.status_code == 200
@@ -53,7 +53,7 @@ def test_get_property_location_subroute(client: TestClient, mock_property: Prope
     assert "sub_scores" in data
 
 
-def test_get_property_investment_subroute(client: TestClient, mock_property: Property):
+def test_get_property_investment_subroute(client: TestClient, mock_property: Property) -> None:
     """Test nested GET /api/v1/properties/{id}/investment subroute."""
     response = client.get(f"/api/v1/properties/{mock_property.id}/investment")
     assert response.status_code == 200
@@ -62,7 +62,7 @@ def test_get_property_investment_subroute(client: TestClient, mock_property: Pro
     assert "gross_rental_yield_pct" in data
 
 
-def test_get_property_similar_subroute(client: TestClient, mock_property: Property):
+def test_get_property_similar_subroute(client: TestClient, mock_property: Property) -> None:
     """Test nested GET /api/v1/properties/{id}/similar subroute."""
     response = client.get(f"/api/v1/properties/{mock_property.id}/similar?limit=3")
     assert response.status_code == 200

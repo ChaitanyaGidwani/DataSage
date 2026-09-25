@@ -1,5 +1,6 @@
 """Unit tests for ComparisonService and property comparison matrix."""
 
+from typing import Any
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 import pytest
@@ -11,7 +12,7 @@ from datasage.services.comparison_service import ComparisonService
 
 
 @pytest.mark.asyncio
-async def test_compare_properties_requires_at_least_two():
+async def test_compare_properties_requires_at_least_two() -> None:
     """Test validation error when comparing fewer than 2 properties."""
     session = AsyncMock()
     service = ComparisonService(session)
@@ -22,7 +23,7 @@ async def test_compare_properties_requires_at_least_two():
 
 
 @pytest.mark.asyncio
-async def test_compare_properties_rejects_more_than_four():
+async def test_compare_properties_rejects_more_than_four() -> None:
     """Test validation error when comparing more than 4 properties."""
     session = AsyncMock()
     service = ComparisonService(session)
@@ -34,7 +35,7 @@ async def test_compare_properties_rejects_more_than_four():
 
 
 @pytest.mark.asyncio
-async def test_compare_properties_success(mock_property: Property, mock_locality: Locality, mock_city: City):
+async def test_compare_properties_success(mock_property: Property, mock_locality: Locality, mock_city: City) -> None:
     """Test side-by-side comparison of 2 properties."""
     # Create second property
     prop2_id = uuid.UUID("44444444-4444-4444-4444-444444444444")
@@ -66,7 +67,7 @@ async def test_compare_properties_success(mock_property: Property, mock_locality
 
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from property" in q_str:

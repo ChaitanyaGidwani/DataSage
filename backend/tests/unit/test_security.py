@@ -11,7 +11,7 @@ from datasage.core.security import (
 )
 
 
-def test_password_hashing():
+def test_password_hashing() -> None:
     """Test that bcrypt hashes password and verifies correctly."""
     plain = "MySecretPassword123"
     hashed = hash_password(plain)
@@ -21,7 +21,7 @@ def test_password_hashing():
     assert verify_password("WrongPassword", hashed) is False
 
 
-def test_access_token_creation_and_verification():
+def test_access_token_creation_and_verification() -> None:
     """Test creating and verifying an access token."""
     token = create_access_token(
         user_id="user-1234",
@@ -40,7 +40,7 @@ def test_access_token_creation_and_verification():
     assert "iat" in payload
 
 
-def test_refresh_token_creation_and_verification():
+def test_refresh_token_creation_and_verification() -> None:
     """Test creating and verifying a refresh token."""
     token = create_refresh_token(user_id="user-1234")
     assert isinstance(token, str)
@@ -52,7 +52,7 @@ def test_refresh_token_creation_and_verification():
     assert "exp" in payload
 
 
-def test_expired_token_returns_none():
+def test_expired_token_returns_none() -> None:
     """Test that expired tokens return None when verified."""
     expired_token = create_access_token(
         user_id="user-expired",
@@ -64,7 +64,7 @@ def test_expired_token_returns_none():
     assert payload is None
 
 
-def test_invalid_token_returns_none():
+def test_invalid_token_returns_none() -> None:
     """Test that tampered/garbage tokens return None."""
     assert verify_token("invalid.jwt.token") is None
     assert verify_token("") is None

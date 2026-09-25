@@ -9,7 +9,7 @@ from datasage.schemas.comparison import ComparisonRequest
 from datasage.schemas.user import UserPreferenceRequest
 
 
-def test_register_request_valid():
+def test_register_request_valid() -> None:
     """Test valid registration payload."""
     req = RegisterRequest(
         name="Rahul Verma",
@@ -20,7 +20,7 @@ def test_register_request_valid():
     assert req.email == "rahul@example.com"
 
 
-def test_register_request_invalid_email():
+def test_register_request_invalid_email() -> None:
     """Test invalid email raises ValidationError."""
     with pytest.raises(ValidationError):
         RegisterRequest(
@@ -30,7 +30,7 @@ def test_register_request_invalid_email():
         )
 
 
-def test_register_request_short_password():
+def test_register_request_short_password() -> None:
     """Test password below 8 characters raises ValidationError."""
     with pytest.raises(ValidationError):
         RegisterRequest(
@@ -40,7 +40,7 @@ def test_register_request_short_password():
         )
 
 
-def test_comparison_request_validation():
+def test_comparison_request_validation() -> None:
     """Test ComparisonRequest schema."""
     id1 = uuid.uuid4()
     id2 = uuid.uuid4()
@@ -52,10 +52,10 @@ def test_comparison_request_validation():
         ComparisonRequest(property_ids=["not-a-uuid"])  # type: ignore
 
 
-def test_user_preference_request_validation():
+def test_user_preference_request_validation() -> None:
     """Test UserPreferenceRequest negative budgets."""
     with pytest.raises(ValidationError):
-        UserPreferenceRequest(budget_min=-100)
+        UserPreferenceRequest.model_validate({"budget_min": -100})
 
     pref = UserPreferenceRequest(
         budget_min=4000000,

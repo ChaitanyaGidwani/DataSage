@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 
-def test_admin_stats_endpoint(client: TestClient):
+def test_admin_stats_endpoint(client: TestClient) -> None:
     """Test GET /api/v1/admin/stats returns aggregate platform statistics."""
     response = client.get("/api/v1/admin/stats")
     assert response.status_code == 200
@@ -15,7 +15,7 @@ def test_admin_stats_endpoint(client: TestClient):
     assert "system_status" in data
 
 
-def test_trigger_bulk_valuations_endpoint(client: TestClient):
+def test_trigger_bulk_valuations_endpoint(client: TestClient) -> None:
     """Test POST /api/v1/admin/trigger-valuations runs bulk generation."""
     response = client.post("/api/v1/admin/trigger-valuations?limit=5")
     assert response.status_code == 200

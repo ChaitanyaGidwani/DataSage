@@ -1,5 +1,4 @@
-"""Unit tests for RecommendationService and preference-weighted scoring."""
-
+from typing import Any
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 import pytest
@@ -13,7 +12,7 @@ from datasage.services.recommendation_service import (
 )
 
 
-def test_compute_budget_score():
+def test_compute_budget_score() -> None:
     """Test budget scoring curve."""
     # When no budget provided -> reasonable baseline
     score, label = _compute_budget_score(5000000, None, None)
@@ -35,11 +34,11 @@ def test_compute_budget_score():
 
 
 @pytest.mark.asyncio
-async def test_recommendations_fallback_mode_without_user(mock_property: Property, mock_locality: Locality, mock_city: City):
+async def test_recommendations_fallback_mode_without_user(mock_property: Property, mock_locality: Locality, mock_city: City) -> None:
     """Test recommendation engine in fallback/popular mode without user_id."""
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from property" in q_str:
@@ -67,7 +66,7 @@ async def test_recommendations_fallback_mode_without_user(mock_property: Propert
 
 
 @pytest.mark.asyncio
-async def test_recommendations_with_user_preferences(mock_property: Property, mock_locality: Locality, mock_city: City):
+async def test_recommendations_with_user_preferences(mock_property: Property, mock_locality: Locality, mock_city: City) -> None:
     """Test recommendation engine tailoring scores to user preference."""
     pref = UserPreference(
         user_id=uuid.uuid4(),
@@ -80,7 +79,7 @@ async def test_recommendations_with_user_preferences(mock_property: Property, mo
 
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from user_preference" in q_str:

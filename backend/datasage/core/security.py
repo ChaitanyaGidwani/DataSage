@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import bcrypt
 from jose import JWTError, jwt
@@ -81,7 +82,7 @@ def create_refresh_token(
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
-def verify_token(token: str) -> dict | None:
+def verify_token(token: str) -> dict[str, Any] | None:
     """Decode and verify a JWT token. Returns payload dict or None if invalid."""
     try:
         payload = jwt.decode(

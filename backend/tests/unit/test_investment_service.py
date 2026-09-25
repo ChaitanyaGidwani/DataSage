@@ -1,5 +1,6 @@
 """Unit tests for InvestmentService and ROI projection logic."""
 
+from typing import Any
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 import pytest
@@ -11,11 +12,11 @@ from datasage.services.investment_service import InvestmentService
 
 
 @pytest.mark.asyncio
-async def test_investment_analysis_success(mock_property: Property, mock_locality: Locality):
+async def test_investment_analysis_success(mock_property: Property, mock_locality: Locality) -> None:
     """Test investment analysis calculations and 5-year projections."""
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from property" in q_str:
@@ -56,7 +57,7 @@ async def test_investment_analysis_success(mock_property: Property, mock_localit
 
 
 @pytest.mark.asyncio
-async def test_investment_analysis_not_found():
+async def test_investment_analysis_not_found() -> None:
     """Test investment analysis raises NotFoundError when property missing."""
     session = AsyncMock()
     res = MagicMock()

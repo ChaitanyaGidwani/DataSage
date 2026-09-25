@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 
-def test_get_recommendations_unauthenticated(client: TestClient):
+def test_get_recommendations_unauthenticated(client: TestClient) -> None:
     """Test GET /api/v1/recommendations in unauthenticated fallback mode."""
     response = client.get("/api/v1/recommendations?limit=5")
     assert response.status_code == 200
@@ -14,7 +14,7 @@ def test_get_recommendations_unauthenticated(client: TestClient):
     assert data["fallback_mode"] is True
 
 
-def test_get_recommendations_authenticated(client: TestClient, user_access_token: str):
+def test_get_recommendations_authenticated(client: TestClient, user_access_token: str) -> None:
     """Test GET /api/v1/recommendations with authenticated user."""
     response = client.get(
         "/api/v1/recommendations?limit=5",

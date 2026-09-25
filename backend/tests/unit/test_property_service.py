@@ -11,7 +11,7 @@ from datasage.services.property_service import PropertyService
 
 
 @pytest.mark.asyncio
-async def test_get_property_detail_success(mock_property: Property, mock_locality: Locality):
+async def test_get_property_detail_success(mock_property: Property, mock_locality: Locality) -> None:
     """Test retrieving full property detail by ID."""
     session = AsyncMock()
     service = PropertyService(session)
@@ -33,7 +33,7 @@ async def test_get_property_detail_success(mock_property: Property, mock_localit
 
 
 @pytest.mark.asyncio
-async def test_get_property_detail_invalid_uuid():
+async def test_get_property_detail_invalid_uuid() -> None:
     """Test get_detail with invalid UUID format raises NotFoundError."""
     session = AsyncMock()
     service = PropertyService(session)
@@ -43,7 +43,7 @@ async def test_get_property_detail_invalid_uuid():
 
 
 @pytest.mark.asyncio
-async def test_get_similar_properties(mock_property: Property, mock_locality: Locality):
+async def test_get_similar_properties(mock_property: Property, mock_locality: Locality) -> None:
     """Test retrieving similar properties."""
     similar_prop = Property(
         id=uuid.UUID("55555555-5555-5555-5555-555555555555"),

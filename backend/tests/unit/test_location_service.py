@@ -1,5 +1,4 @@
-"""Unit tests for LocationService and geospatial scoring logic."""
-
+from typing import Any
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 import pytest
@@ -13,7 +12,7 @@ from datasage.services.location_service import (
 )
 
 
-def test_distance_to_subscore():
+def test_distance_to_subscore() -> None:
     """Test mapping distances to 0-100 scores."""
     # Under walk distance -> 85-100
     score_walk = _distance_to_subscore(0.2, max_walk_km=0.8, max_good_km=2.5)
@@ -30,11 +29,11 @@ def test_distance_to_subscore():
 
 
 @pytest.mark.asyncio
-async def test_get_property_location_score_success(mock_property: Property, mock_locality: Locality):
+async def test_get_property_location_score_success(mock_property: Property, mock_locality: Locality) -> None:
     """Test full location intelligence response generation."""
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from property" in q_str:
@@ -67,7 +66,7 @@ async def test_get_property_location_score_success(mock_property: Property, mock
 
 
 @pytest.mark.asyncio
-async def test_location_score_property_not_found():
+async def test_location_score_property_not_found() -> None:
     """Test location service NotFoundError when property missing."""
     session = AsyncMock()
     res = MagicMock()

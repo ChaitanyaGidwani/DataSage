@@ -8,13 +8,13 @@ from datasage.core.security import create_access_token, create_refresh_token, ha
 from datasage.models.user import User
 
 
-def test_auth_me_unauthorized(client: TestClient):
+def test_auth_me_unauthorized(client: TestClient) -> None:
     """Test accessing /api/v1/auth/me without token returns 401/403."""
     response = client.get("/api/v1/auth/me")
     assert response.status_code in [401, 403]
 
 
-def test_auth_me_authorized(client: TestClient, user_access_token: str):
+def test_auth_me_authorized(client: TestClient, user_access_token: str) -> None:
     """Test accessing /api/v1/auth/me with valid Bearer token."""
     response = client.get(
         "/api/v1/auth/me",
@@ -27,7 +27,7 @@ def test_auth_me_authorized(client: TestClient, user_access_token: str):
     assert data["role"] == "buyer"
 
 
-def test_register_invalid_payload(client: TestClient):
+def test_register_invalid_payload(client: TestClient) -> None:
     """Test registration endpoint rejects bad payload."""
     response = client.post(
         "/api/v1/auth/register",
@@ -36,7 +36,7 @@ def test_register_invalid_payload(client: TestClient):
     assert response.status_code == 422
 
 
-def test_login_invalid_credentials(client: TestClient):
+def test_login_invalid_credentials(client: TestClient) -> None:
     """Test login endpoint with non-existent email returns 401."""
     # When user is not found, AuthService raises AuthenticationError
     response = client.post(
@@ -46,7 +46,7 @@ def test_login_invalid_credentials(client: TestClient):
     assert response.status_code == 401
 
 
-def test_refresh_token_endpoint(client: TestClient, mock_user: User):
+def test_refresh_token_endpoint(client: TestClient, mock_user: User) -> None:
     """Test refreshing an access token with a valid refresh token."""
     refresh_tok = create_refresh_token(user_id=str(mock_user.id))
     response = client.post(
