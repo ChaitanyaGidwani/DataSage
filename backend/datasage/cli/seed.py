@@ -242,6 +242,23 @@ async def run_seed(count: int = 1000) -> None:
                 session.add(demo)
                 logger.info("Seeded demo user (demo@datasage.ai / DataSage@2026).")
 
+            # Seed admin user
+            existing_admin = await session.execute(
+                select(User).where(User.email == "admin@datasage.ai")
+            )
+            if not existing_admin.scalar_one_or_none():
+                admin_pw_hash = await asyncio.to_thread(hash_password, "DataSage@2026")
+                admin_user = User(
+                    name="Admin User",
+                    email="admin@datasage.ai",
+                    password_hash=admin_pw_hash,
+                    role="admin",
+                    is_active=True,
+                    email_verified=True,
+                )
+                session.add(admin_user)
+                logger.info("Seeded admin user (admin@datasage.ai / DataSage@2026).")
+
             await session.commit()
             logger.info("Seeding complete.")
         except Exception:
