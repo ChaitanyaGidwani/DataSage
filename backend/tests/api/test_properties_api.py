@@ -1,7 +1,9 @@
 """API integration tests for properties endpoints and nested sub-routes."""
 
 import uuid
+
 from fastapi.testclient import TestClient
+
 from datasage.models.property import Property
 
 

@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datasage.api.deps import get_current_user, require_role
+from datasage.api.deps import require_role
 from datasage.core.database import get_session
 from datasage.models.user import User
 from datasage.services.valuation_service import ValuationService

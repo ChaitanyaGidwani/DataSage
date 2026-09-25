@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import uuid
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
-from datasage.services.comparison_service import ComparisonService
 from datasage.schemas.comparison import ComparisonRequest, ComparisonResponse
+from datasage.services.comparison_service import ComparisonService
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ async def compare_properties_get(
         parsed_ids = [uuid.UUID(s) for s in raw_ids]
     except ValueError as e:
         from datasage.core.exceptions import ValidationError
-        raise ValidationError(f"Invalid property UUID provided: {e}")
+        raise ValidationError(f"Invalid property UUID provided: {e}") from e
 
     service = ComparisonService(session)
     return await service.compare_properties(parsed_ids)

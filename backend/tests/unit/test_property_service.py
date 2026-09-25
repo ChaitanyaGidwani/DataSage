@@ -2,6 +2,7 @@
 
 import uuid
 from unittest.mock import AsyncMock
+
 import pytest
 
 from datasage.core.exceptions import NotFoundError

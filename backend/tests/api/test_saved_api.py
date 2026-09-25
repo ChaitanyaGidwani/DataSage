@@ -1,8 +1,6 @@
 """API integration tests for saved properties endpoints."""
 
-import uuid
 from fastapi.testclient import TestClient
-from datasage.models.property import Property
 
 
 def test_list_saved_unauthorized(client: TestClient) -> None:

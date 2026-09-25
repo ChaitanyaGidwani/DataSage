@@ -1,7 +1,9 @@
 """API integration tests for property comparison endpoints."""
 
 import uuid
+
 from fastapi.testclient import TestClient
+
 from datasage.models.property import Property
 
 

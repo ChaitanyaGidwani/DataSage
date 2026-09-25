@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
-from datasage.services.location_service import LocationService
 from datasage.schemas.location import LocationScoreResponse
+from datasage.services.location_service import LocationService
 
 router = APIRouter()
 

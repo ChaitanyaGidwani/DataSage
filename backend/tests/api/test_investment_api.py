@@ -1,6 +1,7 @@
 """API integration tests for investment analysis endpoints."""
 
 from fastapi.testclient import TestClient
+
 from datasage.models.property import Property
 
 

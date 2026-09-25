@@ -1,8 +1,9 @@
 """Unit tests for ComparisonService and property comparison matrix."""
 
-from typing import Any
 import uuid
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from datasage.core.exceptions import ValidationError

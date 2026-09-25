@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.api.deps import get_current_user
 from datasage.core.database import get_session
@@ -16,8 +17,8 @@ router = APIRouter()
 @router.get("", response_model=UserPreferenceResponse | None)
 async def get_preferences(
     user: User = Depends(get_current_user),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> UserPreferenceResponse | None:
     """Get the current user's preferences."""
     repo = PreferenceRepository(session)
     pref = await repo.get_by_user(user.id)
@@ -50,8 +51,8 @@ async def get_preferences(
 async def update_preferences(
     body: UserPreferenceRequest,
     user: User = Depends(get_current_user),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> UserPreferenceResponse:
     """Create or update the current user's preferences."""
     repo = PreferenceRepository(session)
 

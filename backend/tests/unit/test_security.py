@@ -1,7 +1,7 @@
 """Unit tests for security, password hashing, and JWT tokens."""
 
 from datetime import timedelta
-import pytest
+
 from datasage.core.security import (
     create_access_token,
     create_refresh_token,

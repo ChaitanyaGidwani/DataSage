@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
-from datasage.api.deps import require_role
-from datasage.models.user import User
 from datasage.models.property import Property
-from datasage.models.reference import Locality, City
+from datasage.models.reference import Locality
+from datasage.models.user import User
 from datasage.models.valuation import ValuationPrediction
 from datasage.services.valuation_service import ValuationService
 

@@ -1,6 +1,7 @@
 """API integration tests for location & geospatial intelligence endpoints."""
 
 from fastapi.testclient import TestClient
+
 from datasage.models.property import Property
 
 

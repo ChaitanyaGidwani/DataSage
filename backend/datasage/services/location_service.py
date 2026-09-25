@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import logging
 import uuid
-import math
-from datetime import datetime, timezone
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.models.property import Property
 from datasage.models.reference import Locality
-from datasage.models.location import PropertyLocation
 from datasage.schemas.location import (
     LocationScoreResponse,
     LocationSubScores,
@@ -25,7 +24,7 @@ from datasage.schemas.location import (
 logger = logging.getLogger(__name__)
 
 # Locality-specific infrastructure profiles for Delhi-NCR
-LOCALITY_GEO_PROFILES: dict[str, dict] = {
+LOCALITY_GEO_PROFILES: dict[str, dict[str, Any]] = {
     # Central / South Delhi
     "Vasant Kunj": {"metro_dist": 1.2, "metro_name": "Chattarpur Metro", "hospital_dist": 0.8, "school_dist": 0.6, "park_dist": 0.3, "mall_dist": 1.0},
     "Hauz Khas": {"metro_dist": 0.4, "metro_name": "Hauz Khas Metro (Interchange)", "hospital_dist": 1.5, "school_dist": 0.5, "park_dist": 0.2, "mall_dist": 1.2},

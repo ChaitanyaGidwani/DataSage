@@ -1,10 +1,11 @@
 """Unit tests for Pydantic request and response schemas."""
 
 import uuid
+
 import pytest
 from pydantic import ValidationError
 
-from datasage.schemas.auth import LoginRequest, RegisterRequest
+from datasage.schemas.auth import RegisterRequest
 from datasage.schemas.comparison import ComparisonRequest
 from datasage.schemas.user import UserPreferenceRequest
 

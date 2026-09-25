@@ -15,7 +15,6 @@ from datasage.schemas.investment import InvestmentAnalysisResponse
 from datasage.schemas.location import LocationScoreResponse
 from datasage.schemas.property import (
     PropertyDetailResponse,
-    PropertySearchParams,
     PropertySummaryResponse,
     PropertyType,
     SortField,

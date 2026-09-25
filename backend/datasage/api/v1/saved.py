@@ -52,7 +52,7 @@ async def save_property(
     try:
         parsed_id = uuid.UUID(property_id)
     except ValueError:
-        raise HTTPException(status_code=422, detail="Invalid property_id UUID format")
+        raise HTTPException(status_code=422, detail="Invalid property_id UUID format") from None
 
     repo = SavedPropertyRepository(session)
     saved = await repo.save(user.id, parsed_id)
@@ -69,7 +69,7 @@ async def unsave_property(
     try:
         parsed_id = uuid.UUID(property_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Saved property not found")
+        raise HTTPException(status_code=404, detail="Saved property not found") from None
 
     repo = SavedPropertyRepository(session)
     removed = await repo.unsave(user.id, parsed_id)

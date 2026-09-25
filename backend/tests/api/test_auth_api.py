@@ -1,10 +1,8 @@
 """API integration tests for authentication endpoints."""
 
-import uuid
-from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 
-from datasage.core.security import create_access_token, create_refresh_token, hash_password
+from datasage.core.security import create_refresh_token
 from datasage.models.user import User
 
 

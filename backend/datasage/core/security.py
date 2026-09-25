@@ -6,8 +6,8 @@ See docs/11-authentication-authorization.md for the full auth design.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import bcrypt
 from jose import JWTError, jwt
@@ -31,12 +31,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds
 
 def hash_password(password: str) -> str:
     """Hash a plaintext password using bcrypt."""
-    return pwd_context.hash(password)
+    return cast(str, pwd_context.hash(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plaintext password against its hash (constant-time comparison)."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return cast(bool, pwd_context.verify(plain_password, hashed_password))
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ def create_access_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """Create a short-lived JWT access token."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + (expires_delta or timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES))
     payload = {
         "sub": user_id,
@@ -62,7 +62,7 @@ def create_access_token(
         "exp": expire,
         "jti": str(uuid.uuid4()),
     }
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return cast(str, jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM))
 
 
 def create_refresh_token(
@@ -70,7 +70,7 @@ def create_refresh_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """Create a longer-lived JWT refresh token."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + (expires_delta or timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS))
     payload = {
         "sub": user_id,
@@ -79,7 +79,7 @@ def create_refresh_token(
         "exp": expire,
         "jti": str(uuid.uuid4()),
     }
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return cast(str, jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM))
 
 
 def verify_token(token: str) -> dict[str, Any] | None:
@@ -90,6 +90,6 @@ def verify_token(token: str) -> dict[str, Any] | None:
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-        return payload
+        return cast(dict[str, Any], payload)
     except JWTError:
         return None
