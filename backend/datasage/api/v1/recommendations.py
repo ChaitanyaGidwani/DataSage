@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get("", response_model=RecommendationResponse)
 async def get_recommendations(
     limit: int = Query(10, ge=1, le=50),
-    city_id: uuid.UUID | None = Query(None),
+    city_id: int | None = Query(None),
     current_user: User | None = Depends(get_current_user_optional),
     session: AsyncSession = Depends(get_session),
 ) -> RecommendationResponse:

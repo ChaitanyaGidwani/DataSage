@@ -19,7 +19,7 @@ from datasage.models.reference import Locality, City
 from datasage.models.valuation import ValuationPrediction
 from datasage.services.location_service import LocationService
 from datasage.services.valuation_service import ValuationService
-from datasage.schemas.property import PropertySummaryResponse
+from datasage.schemas.property import LocalitySummary, PropertySummaryResponse, ValuationSummary
 from datasage.schemas.recommendation import (
     RecommendationResponse,
     RecommendationItem,
@@ -30,21 +30,30 @@ logger = logging.getLogger(__name__)
 
 def _compute_budget_score(price: int, b_min: int | None, b_max: int | None) -> tuple[float, str]:
     """Score 0-1 on how well price fits the budget."""
-    if not b_min and not b_max:
+    if b_min is None and b_max is None:
         return 0.85, "Within typical range"
-    b_min = b_min or int(b_max * 0.6)  # fallback
-    b_max = b_max or int(b_min * 1.5)  # fallback
 
-    if b_min <= price <= b_max:
-        mid = (b_min + b_max) / 2
-        half = (b_max - b_min) / 2 if b_max > b_min else 1.0
+    if b_min is None:
+        assert b_max is not None
+        min_val = int(b_max * 0.6)
+        max_val = b_max
+    elif b_max is None:
+        min_val = b_min
+        max_val = int(b_min * 1.5)
+    else:
+        min_val = b_min
+        max_val = b_max
+
+    if min_val <= price <= max_val:
+        mid = (min_val + max_val) / 2
+        half = (max_val - min_val) / 2 if max_val > min_val else 1.0
         dev = abs(price - mid) / half
         return max(0.7, 1.0 - (0.3 * dev)), "Perfect budget fit"
-    elif price < b_min:
-        gap = (b_min - price) / b_min
+    elif price < min_val:
+        gap = (min_val - price) / min_val
         return max(0.4, 1.0 - gap), "Below budget"
     else:
-        gap = (price - b_max) / b_max
+        gap = (price - max_val) / max_val
         return max(0.0, 0.5 - gap * 2), "Above budget"
 
 
@@ -60,7 +69,7 @@ class RecommendationService:
         self,
         user_id: uuid.UUID | None = None,
         limit: int = 10,
-        city_id: uuid.UUID | None = None,
+        city_id: int | None = None,
     ) -> RecommendationResponse:
         """Score candidate properties and return top matches."""
         # 1. Fetch user preference if user_id is provided
@@ -95,9 +104,10 @@ class RecommendationService:
 
         scored_items: list[tuple[float, RecommendationItem]] = []
 
-        # Parse preferences if available
-        pref_bhks = pref.bhk_preferences if pref and pref.bhk_preferences else []
-        pref_localities = [uuid.UUID(lid) if isinstance(lid, str) else lid for lid in (pref.preferred_localities or [])]
+        pref_bhks: list[int] = pref.bhk_preferences if pref and pref.bhk_preferences else []
+        pref_localities: list[int] = (
+            pref.preferred_locality_ids if pref and pref.preferred_locality_ids else []
+        )
         budget_min = pref.budget_min if pref else None
         budget_max = pref.budget_max if pref else None
         priorities = pref.lifestyle_priorities if pref and pref.lifestyle_priorities else ["metro", "schools", "shopping"]
@@ -181,22 +191,25 @@ class RecommendationService:
                 reasons.append(f"Well-priced residential unit in thriving {loc_name}")
 
             summary_item = PropertySummaryResponse(
-                id=prop.id,
+                id=str(prop.id),
                 title=prop.title,
-                city_name=city_name,
-                locality_name=loc_name,
                 property_type=prop.property_type,
                 bhk=prop.bhk,
                 area_sqft=prop.area_sqft,
                 listing_price=prop.listing_price,
-                price_per_sqft=int(prop.listing_price / prop.area_sqft) if prop.area_sqft > 0 else 0,
-                furnishing=prop.furnishing,
-                facing=prop.facing,
-                parking_count=prop.parking_count,
+                locality=LocalitySummary(
+                    id=prop.locality_id or 0,
+                    name=loc_name,
+                    city=city_name,
+                ),
                 primary_image_url=prop.images[0].url if prop.images else None,
-                predicted_value=val.predicted_value if val else None,
-                pricing_classification=val.pricing_classification if val else None,
-                created_at=prop.created_at,
+                valuation_summary=ValuationSummary(
+                    predicted_value=val.predicted_value,
+                    pricing_classification=val.pricing_classification,
+                    price_gap_pct=val.price_gap_pct,
+                ) if val else None,
+                location_score=round(raw_loc_score * 100.0, 1),
+                listed_at=prop.listed_at,
             )
 
             rec_item = RecommendationItem(

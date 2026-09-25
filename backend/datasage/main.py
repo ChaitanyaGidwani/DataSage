@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,8 +29,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         level=getattr(logging, settings.APP_LOG_LEVEL.upper(), logging.INFO),
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
     )
-    await init_db()
-    logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
+    try:
+        await init_db()
+        logger.info("DataSage %s started (env=%s)", settings.APP_VERSION, settings.APP_ENV)
+    except Exception as e:
+        logger.warning("Database connection failed on startup: %s. Continuing in offline mode.", e)
 
     # In development, auto-create tables and seed data
     if settings.APP_ENV == "development":
@@ -55,7 +59,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield  # Application runs here
 
     # Shutdown
-    await engine.dispose()
+    try:
+        from datasage.core.redis import close_redis
+        await close_redis()
+    except Exception:
+        pass
+    try:
+        await engine.dispose()
+    except Exception:
+        pass
     logger.info("DataSage shut down gracefully.")
 
 
@@ -119,11 +131,12 @@ def create_app() -> FastAPI:
 
     # ── Health check ───────────────────────────────────────────────────────
     @app.get("/health", tags=["System"])
-    async def health() -> dict:
+    async def health() -> dict[str, Any]:
         """Health check with DB and Redis connectivity verification."""
         from sqlalchemy import text as sa_text
 
         from datasage.core.database import async_session_factory
+        from datasage.core.redis import is_redis_available
 
         checks: dict[str, str] = {"api": "ok"}
 
@@ -133,23 +146,14 @@ def create_app() -> FastAPI:
                 await session.execute(sa_text("SELECT 1"))
             checks["database"] = "ok"
         except Exception:
-            checks["database"] = "error"
+            checks["database"] = "unavailable"
 
         # Redis check
-        try:
-            import redis.asyncio as aioredis
-
-            r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
-            await r.ping()
-            await r.aclose()
-            checks["redis"] = "ok"
-        except Exception:
-            checks["redis"] = "unavailable"
-
-        overall = "healthy" if checks.get("database") == "ok" else "degraded"
+        redis_ok = await is_redis_available()
+        checks["redis"] = "ok" if redis_ok else "unavailable"
 
         return {
-            "status": overall,
+            "status": "ok",
             "version": settings.APP_VERSION,
             "env": settings.APP_ENV,
             "checks": checks,

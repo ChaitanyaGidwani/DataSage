@@ -129,7 +129,7 @@ export default function PropertyDetailPage() {
             )}
 
             {/* AI Analysis — Live valuation */}
-            <AIValuation propertyId={property.id} listingPrice={property.listing_price} />
+            <AIValuation propertyId={property.id} />
 
             {/* Location Intelligence */}
             <LocationIntelligence propertyId={property.id} />
@@ -170,7 +170,7 @@ interface PropertyValuation {
   shap_values: Record<string, number>;
 }
 
-function AIValuation({ propertyId }: { propertyId: string; listingPrice: number }) {
+function AIValuation({ propertyId }: { propertyId: string }) {
   const [valuation, setValuation] = useState<PropertyValuation | null>(null);
   const [loading, setLoading] = useState(true);
 

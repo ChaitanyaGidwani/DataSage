@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import DateTime, Float, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +22,9 @@ class Dataset(UUIDMixin, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     property_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Relationships
     imports = relationship("DatasetImport", back_populates="dataset", lazy="selectin")
@@ -32,14 +35,18 @@ class DatasetImport(UUIDMixin, Base):
 
     __tablename__ = "dataset_import"
 
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    dataset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("dataset.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     total_rows: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     valid_rows: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     quarantined_rows: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="processing")
-    error_summary: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    imported_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    error_summary: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    imported_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
     started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -56,9 +63,9 @@ class DataQualityReport(UUIDMixin, Base):
     __tablename__ = "data_quality_report"
 
     dataset_import_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("dataset_import.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    issues: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    issues: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     total_issues: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     completeness_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     validity_score: Mapped[float | None] = mapped_column(Float, nullable=True)

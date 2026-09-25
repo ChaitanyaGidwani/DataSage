@@ -47,8 +47,13 @@ async def save_property(
     if not property_id:
         raise HTTPException(status_code=422, detail="property_id is required")
 
+    try:
+        parsed_id = uuid.UUID(property_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid property_id UUID format")
+
     repo = SavedPropertyRepository(session)
-    saved = await repo.save(user.id, uuid.UUID(property_id))
+    saved = await repo.save(user.id, parsed_id)
     return {"id": str(saved.id), "property_id": str(saved.property_id)}
 
 
@@ -59,7 +64,12 @@ async def unsave_property(
     session=Depends(get_session),
 ):
     """Remove a property from the user's saved list."""
+    try:
+        parsed_id = uuid.UUID(property_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Saved property not found")
+
     repo = SavedPropertyRepository(session)
-    removed = await repo.unsave(user.id, uuid.UUID(property_id))
+    removed = await repo.unsave(user.id, parsed_id)
     if not removed:
         raise HTTPException(status_code=404, detail="Saved property not found")

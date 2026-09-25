@@ -12,13 +12,14 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.models.property import Property
 from datasage.models.reference import Locality
-from datasage.models.valuation import ValuationPrediction
+from datasage.models.valuation import ModelVersion, ValuationPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class ValuationService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def predict_value(self, property_id: str) -> dict:
+    async def predict_value(self, property_id: str) -> dict[str, Any]:
         """Generate a valuation prediction for a single property."""
         # Fetch property
         result = await self.session.execute(
@@ -96,6 +97,15 @@ class ValuationService:
         if not prop:
             from datasage.core.exceptions import NotFoundError
             raise NotFoundError("Property", property_id)
+
+        # Check Redis cache for recent valuation prediction
+        from datasage.core.config import settings
+        from datasage.core.redis import cache_get_json, cache_set_json
+
+        cache_key = f"valuation:{property_id}"
+        cached = await cache_get_json(cache_key)
+        if isinstance(cached, dict):
+            return cached
 
         # Fetch locality for avg_price_per_sqft
         loc_result = await self.session.execute(
@@ -154,10 +164,25 @@ class ValuationService:
             "parking": round((parking_adj - 1.0) * predicted_value, 0),
         }
 
+        # Ensure baseline heuristic model version exists in DB
+        heuristic_model_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+        mv_res = await self.session.execute(
+            select(ModelVersion).where(ModelVersion.id == heuristic_model_id)
+        )
+        if not mv_res.scalar_one_or_none():
+            mv = ModelVersion(
+                id=heuristic_model_id,
+                version_label="v0.1-heuristic",
+                algorithm="heuristic",
+                is_active=True,
+            )
+            self.session.add(mv)
+            await self.session.flush()
+
         # Store prediction
         prediction = ValuationPrediction(
             property_id=prop.id,
-            model_version_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),  # Heuristic model
+            model_version_id=heuristic_model_id,
             predicted_value=predicted_value,
             confidence_low=confidence_low,
             confidence_high=confidence_high,
@@ -169,7 +194,7 @@ class ValuationService:
         self.session.add(prediction)
         await self.session.flush()
 
-        return {
+        response_data = {
             "property_id": str(prop.id),
             "listing_price": prop.listing_price,
             "predicted_value": predicted_value,
@@ -180,8 +205,10 @@ class ValuationService:
             "price_gap_pct": round(gap_pct, 2),
             "shap_values": shap_values,
         }
+        await cache_set_json(cache_key, response_data, ttl=settings.ML_PREDICTION_CACHE_TTL)
+        return response_data
 
-    async def bulk_predict(self, limit: int = 100) -> list[dict]:
+    async def bulk_predict(self, limit: int = 100) -> list[dict[str, Any]]:
         """Generate valuations for all properties that don't have one yet."""
         # Find properties without predictions
         subq = select(ValuationPrediction.property_id)

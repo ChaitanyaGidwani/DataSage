@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Float, Index, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from datasage.models.base import Base, UUIDMixin
 
@@ -19,7 +20,7 @@ class ModelVersion(UUIDMixin, Base):
 
     version_label: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     algorithm: Mapped[str] = mapped_column(String(50), nullable=False, default="xgboost")
-    hyperparameters: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    hyperparameters: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     mape: Mapped[float | None] = mapped_column(Float, nullable=True)
     r_squared: Mapped[float | None] = mapped_column(Float, nullable=True)
     mae: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -37,19 +38,27 @@ class ValuationPrediction(UUIDMixin, Base):
 
     __tablename__ = "valuation_prediction"
 
-    property_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    model_version_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    property_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("property.id", ondelete="CASCADE"), nullable=False
+    )
+    model_version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("model_version.id", ondelete="RESTRICT"), nullable=False
+    )
     predicted_value: Mapped[int] = mapped_column(Integer, nullable=False)
     confidence_low: Mapped[int] = mapped_column(Integer, nullable=False)
     confidence_high: Mapped[int] = mapped_column(Integer, nullable=False)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False)
     pricing_classification: Mapped[str] = mapped_column(String(20), nullable=False)
     price_gap_pct: Mapped[float] = mapped_column(Float, nullable=False)
-    shap_values: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    feature_vector: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    shap_values: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    feature_vector: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+    # Relationships
+    property = relationship("Property", back_populates="valuations")
+    model_version = relationship("ModelVersion")
 
     __table_args__ = (
         Index("idx_valuation_property", "property_id"),

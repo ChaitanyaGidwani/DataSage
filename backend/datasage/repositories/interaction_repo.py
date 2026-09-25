@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,8 +39,9 @@ class SavedPropertyRepository:
                 SavedProperty.property_id == property_id,
             )
         )
-        if existing.scalar_one_or_none():
-            return existing.scalar_one_or_none()
+        existing_item = existing.scalar_one_or_none()
+        if existing_item:
+            return existing_item
 
         saved = SavedProperty(user_id=user_id, property_id=property_id)
         self.session.add(saved)
@@ -83,7 +85,7 @@ class SearchHistoryRepository:
         return list(result.scalars().all())
 
     async def record(
-        self, user_id: uuid.UUID, query_params: dict, result_count: int
+        self, user_id: uuid.UUID, query_params: dict[str, Any], result_count: int
     ) -> SearchHistory:
         entry = SearchHistory(
             user_id=user_id,

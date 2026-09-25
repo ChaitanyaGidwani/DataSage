@@ -47,7 +47,7 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated]);
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading || !isAuthenticated || loading) {
     return (
       <div className={styles.page}>
         <div className="container">

@@ -25,7 +25,11 @@ export function CompareProvider({ children }: { children: ReactNode }) {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setCompareIds(parsed.slice(0, MAX_COMPARE));
+        if (Array.isArray(parsed)) {
+          queueMicrotask(() => {
+            setCompareIds(parsed.slice(0, MAX_COMPARE));
+          });
+        }
       }
     } catch {
       // Ignore parse errors

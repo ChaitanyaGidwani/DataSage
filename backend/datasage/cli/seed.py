@@ -14,24 +14,21 @@ import logging
 import os
 import random
 import sys
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# pyrefly: ignore [missing-import]
-from sqlalchemy import text
-# pyrefly: ignore [missing-import]
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import async_session_factory, engine
+from datasage.core.security import hash_password
 import datasage.models  # Ensure all models are registered with Base.metadata
 from datasage.models.base import Base
 from datasage.models.reference import City, Locality
 from datasage.models.property import Property
-from datasage.models.valuation import ModelVersion
 from datasage.models.user import User
-from datasage.core.security import hash_password
-from sqlalchemy import select
-import uuid as _uuid
+from datasage.models.valuation import ModelVersion
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +69,9 @@ async def seed_cities_and_localities(session: AsyncSession) -> list[Locality]:
     """Insert cities and localities from CSV."""
     # Check if already seeded
     existing = await session.execute(text("SELECT COUNT(*) FROM city"))
-    if (existing.scalar() or 0) > 0:
+    count = existing.scalar()
+    if count is not None and count > 0:
         logger.info("Cities already seeded — skipping.")
-        result = await session.execute(text("SELECT * FROM locality ORDER BY id"))
-        # Re-fetch localities
         locs = await session.execute(select(Locality))
         return list(locs.scalars().all())
 
@@ -110,8 +106,23 @@ async def seed_cities_and_localities(session: AsyncSession) -> list[Locality]:
             session.add(loc)
             localities.append(loc)
 
+    # Seed baseline heuristic model version for predictions
+    heuristic_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+    existing_mv = await session.execute(
+        select(ModelVersion).where(ModelVersion.id == heuristic_id)
+    )
+    if existing_mv.scalar_one_or_none() is None:
+        mv = ModelVersion(
+            id=heuristic_id,
+            version_label="v0.1-heuristic",
+            algorithm="heuristic",
+            is_active=True,
+            trained_at=datetime.now(timezone.utc),
+        )
+        session.add(mv)
+
     await session.flush()
-    logger.info("Seeded %d localities.", len(localities))
+    logger.info("Seeded %d localities and baseline model version.", len(localities))
     return localities
 
 
@@ -142,6 +153,10 @@ def _generate_property(locality: Locality, index: int) -> Property:
 
     listed_at = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 180))
 
+    # Derive lat/lng from locality centroid with slight random jitter (±0.01°, ~1km)
+    lat = locality.centroid_lat + random.uniform(-0.01, 0.01) if locality.centroid_lat else None
+    lng = locality.centroid_lng + random.uniform(-0.01, 0.01) if locality.centroid_lng else None
+
     return Property(
         city_id=locality.city_id,
         locality_id=locality.id,
@@ -161,6 +176,8 @@ def _generate_property(locality: Locality, index: int) -> Property:
         description=description,
         data_source="seed",
         listed_at=listed_at,
+        latitude=lat,
+        longitude=lng,
     )
 
 
@@ -194,7 +211,7 @@ async def run_seed(count: int = 1000) -> None:
                 await seed_properties(session, localities, count)
 
             # Seed heuristic model version
-            sentinel_id = _uuid.UUID("00000000-0000-0000-0000-000000000001")
+            sentinel_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
             existing_model = await session.execute(
                 select(ModelVersion).where(ModelVersion.id == sentinel_id)
             )

@@ -30,6 +30,11 @@ async def compare_properties_get(
 ) -> ComparisonResponse:
     """Compare properties via comma-separated query param (e.g. ?ids=uuid1,uuid2)."""
     raw_ids = [s.strip() for s in ids.split(",") if s.strip()]
-    parsed_ids = [uuid.UUID(s) for s in raw_ids]
+    try:
+        parsed_ids = [uuid.UUID(s) for s in raw_ids]
+    except ValueError as e:
+        from datasage.core.exceptions import ValidationError
+        raise ValidationError(f"Invalid property UUID provided: {e}")
+
     service = ComparisonService(session)
     return await service.compare_properties(parsed_ids)

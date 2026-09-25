@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -68,37 +68,44 @@ export default function ComparePage() {
 
 function CompareContent() {
   const searchParams = useSearchParams();
-  const [data, setData] = useState<ComparisonResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
   const idsParam = searchParams.get('ids') || '';
-  const ids = idsParam
-    .split(',')
-    .map((id) => id.trim())
-    .filter(Boolean);
+  const ids = useMemo(
+    () =>
+      idsParam
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean),
+    [idsParam]
+  );
+
+  const [data, setData] = useState<ComparisonResponse | null>(null);
+  const [loading, setLoading] = useState(() => ids.length >= 2);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (ids.length < 2) {
-      setLoading(false);
       return;
     }
 
+    let isMounted = true;
     const fetchComparison = async () => {
       try {
         const response = await api.post<ComparisonResponse>('/comparison', {
           property_ids: ids,
         });
-        setData(response);
+        if (isMounted) setData(response);
       } catch {
-        setError('Failed to load comparison data');
+        if (isMounted) setError('Failed to load comparison data');
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchComparison();
-  }, [idsParam]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      isMounted = false;
+    };
+  }, [ids]);
 
   if (loading) {
     return (

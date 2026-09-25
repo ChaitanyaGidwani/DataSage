@@ -47,8 +47,11 @@ export default function PropertyCard({
   return (
     <Link href={`/properties/${id}`} className={styles.card}>
       <div className={styles.imageWrapper}>
-        <div className={styles.imagePlaceholder}>
-          <span className={styles.imageIcon}>🏠</span>
+        <div
+          className={styles.imagePlaceholder}
+          style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+        >
+          {!imageUrl && <span className={styles.imageIcon}>🏠</span>}
         </div>
         {pricingClassification && (
           <span className={`badge badge-${pricingClassification} ${styles.pricingBadge}`}>
