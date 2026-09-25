@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -109,7 +110,7 @@ class AuthService:
             refresh_token=refresh_token,
         )
 
-    async def refresh_token(self, refresh_token_str: str) -> dict:
+    async def refresh_token(self, refresh_token_str: str) -> dict[str, Any]:
         """Issue new access token from a valid refresh token."""
         payload = verify_token(refresh_token_str)
         if not payload or payload.get("type") != "refresh":

@@ -4,18 +4,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
+from datasage.api.v1.admin import router as admin_router
 from datasage.api.v1.auth import router as auth_router
-from datasage.api.v1.properties import router as properties_router
+from datasage.api.v1.comparison import router as comparison_router
+from datasage.api.v1.investment import router as investment_router
 from datasage.api.v1.localities import router as localities_router
+from datasage.api.v1.location import router as location_router
+from datasage.api.v1.preferences import router as preferences_router
+from datasage.api.v1.properties import router as properties_router
+from datasage.api.v1.recommendations import router as recommendations_router
 from datasage.api.v1.saved import router as saved_router
 from datasage.api.v1.search_history import router as history_router
-from datasage.api.v1.preferences import router as preferences_router
 from datasage.api.v1.valuations import router as valuations_router
-from datasage.api.v1.comparison import router as comparison_router
-from datasage.api.v1.location import router as location_router
-from datasage.api.v1.investment import router as investment_router
-from datasage.api.v1.recommendations import router as recommendations_router
-from datasage.api.v1.admin import router as admin_router
 
 api_v1_router = APIRouter()
 

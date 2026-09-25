@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import uuid
 from pydantic import BaseModel, Field
+
 from datasage.schemas.property import PropertySummaryResponse
 
 

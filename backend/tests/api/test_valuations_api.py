@@ -1,10 +1,11 @@
 """API integration tests for valuations endpoints."""
 
 from fastapi.testclient import TestClient
+
 from datasage.models.property import Property
 
 
-def test_get_valuation(client: TestClient, mock_property: Property):
+def test_get_valuation(client: TestClient, mock_property: Property) -> None:
     """Test GET /api/v1/valuations/{property_id}."""
     response = client.get(f"/api/v1/valuations/{mock_property.id}")
     assert response.status_code == 200
@@ -14,7 +15,7 @@ def test_get_valuation(client: TestClient, mock_property: Property):
     assert data["pricing_classification"] in ["underpriced", "fair", "overpriced"]
 
 
-def test_bulk_valuations_requires_admin(client: TestClient, user_access_token: str):
+def test_bulk_valuations_requires_admin(client: TestClient, user_access_token: str) -> None:
     """Test bulk valuations endpoint rejects regular buyers with 403."""
     response = client.post(
         "/api/v1/valuations/bulk?limit=10",
@@ -23,7 +24,7 @@ def test_bulk_valuations_requires_admin(client: TestClient, user_access_token: s
     assert response.status_code == 403
 
 
-def test_bulk_valuations_admin_access(client: TestClient, admin_access_token: str):
+def test_bulk_valuations_admin_access(client: TestClient, admin_access_token: str) -> None:
     """Test bulk valuations endpoint accepts admin user."""
     response = client.post(
         "/api/v1/valuations/bulk?limit=5",

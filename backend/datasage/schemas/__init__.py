@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 T = TypeVar("T")
 
@@ -30,7 +30,7 @@ class ErrorDetail(BaseModel):
     code: str
     message: str
     request_id: str = ""
-    details: dict | None = None
+    details: dict[str, Any] | None = None
 
 
 class ErrorResponse(BaseModel):

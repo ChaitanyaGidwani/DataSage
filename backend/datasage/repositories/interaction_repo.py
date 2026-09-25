@@ -7,10 +7,8 @@ from typing import Any
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from datasage.models.interaction import SavedProperty, SearchHistory
-from datasage.models.property import Property
 
 
 class SavedPropertyRepository:

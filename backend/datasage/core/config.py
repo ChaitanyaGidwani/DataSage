@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
     # --- Application ---------------------------------------------------------
@@ -73,7 +74,7 @@ class Settings(BaseSettings):
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # --- CORS ----------------------------------------------------------------
-    CORS_ORIGINS: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
     CORS_ALLOW_CREDENTIALS: bool = True
 
     @property
@@ -85,6 +86,7 @@ class Settings(BaseSettings):
     ML_MODEL_DIR: str = "./ml/models"
     ML_VALUATION_MODEL_NAME: str = "valuation_xgb_v1.joblib"
     ML_PREDICTION_CACHE_TTL: int = 86400
+    ML_BATCH_SIZE: int = 100
     ML_MIN_CONFIDENCE_THRESHOLD: float = 0.6
 
     # --- Geospatial Configuration --------------------------------------------
@@ -93,6 +95,7 @@ class Settings(BaseSettings):
     OVERPASS_MAX_RETRIES: int = 3
     GEO_DEFAULT_SRID: int = 4326
     GEO_SEARCH_RADIUS_METERS: int = 5000
+    GEO_DELHI_NCR_BBOX: str = "28.3,76.8,28.9,77.6"
 
     # --- Rate Limiting -------------------------------------------------------
     RATE_LIMIT_ENABLED: bool = True

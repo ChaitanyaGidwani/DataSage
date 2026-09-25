@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datasage.core.database import get_session
 from datasage.api.deps import get_current_user_optional
+from datasage.core.database import get_session
 from datasage.models.user import User
-from datasage.services.recommendation_service import RecommendationService
 from datasage.schemas.recommendation import RecommendationResponse
+from datasage.services.recommendation_service import RecommendationService
 
 router = APIRouter()
 

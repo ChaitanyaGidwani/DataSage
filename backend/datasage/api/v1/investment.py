@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
-from datasage.services.investment_service import InvestmentService
 from datasage.schemas.investment import InvestmentAnalysisResponse
+from datasage.services.investment_service import InvestmentService
 
 router = APIRouter()
 

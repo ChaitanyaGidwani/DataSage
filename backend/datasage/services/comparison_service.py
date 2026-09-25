@@ -8,21 +8,22 @@ from __future__ import annotations
 
 import logging
 import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from datasage.models.property import Property, PropertyImage
+from datasage.models.property import Property
 from datasage.models.reference import City, Locality
 from datasage.models.valuation import ValuationPrediction
-from datasage.services.valuation_service import ValuationService
-from datasage.services.location_service import LocationService
-from datasage.services.investment_service import InvestmentService
 from datasage.schemas.comparison import (
     ComparisonResponse,
-    PropertyComparisonItem,
     ComparisonSummary,
+    PropertyComparisonItem,
 )
+from datasage.services.investment_service import InvestmentService
+from datasage.services.location_service import LocationService
+from datasage.services.valuation_service import ValuationService
 
 logger = logging.getLogger(__name__)
 

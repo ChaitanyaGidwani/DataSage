@@ -1,7 +1,7 @@
-"""Unit tests for ValuationService and heuristic valuation logic."""
-
 import uuid
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from datasage.core.exceptions import NotFoundError
@@ -14,7 +14,7 @@ from datasage.services.valuation_service import (
 )
 
 
-def test_classify_pricing_logic():
+def test_classify_pricing_logic() -> None:
     """Test price gap and classification logic."""
     # Underpriced (> 10% below predicted)
     classification, gap = _classify_pricing(listing_price=5000000, predicted=6000000)
@@ -37,7 +37,7 @@ def test_classify_pricing_logic():
     assert gap == 0.0
 
 
-def test_floor_tier_classification():
+def test_floor_tier_classification() -> None:
     """Test floor tier classification for various floor numbers."""
     assert _get_floor_tier(0, 10) == "ground"
     assert _get_floor_tier(2, 10) == "low"
@@ -48,11 +48,11 @@ def test_floor_tier_classification():
 
 
 @pytest.mark.asyncio
-async def test_predict_value_success(mock_property: Property, mock_locality: Locality):
+async def test_predict_value_success(mock_property: Property, mock_locality: Locality) -> None:
     """Test successful valuation calculation with mock session."""
     session = AsyncMock()
 
-    async def mock_execute(query, *args, **kwargs):
+    async def mock_execute(query: Any, *args: Any, **kwargs: Any) -> Any:
         res = MagicMock()
         q_str = str(query).lower()
         if "from property" in q_str:
@@ -83,7 +83,7 @@ async def test_predict_value_success(mock_property: Property, mock_locality: Loc
 
 
 @pytest.mark.asyncio
-async def test_predict_value_not_found():
+async def test_predict_value_not_found() -> None:
     """Test valuation raises NotFoundError when property doesn't exist."""
     session = AsyncMock()
     res = MagicMock()

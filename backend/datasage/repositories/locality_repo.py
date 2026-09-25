@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from datasage.models.reference import Locality, City
+from datasage.models.reference import City, Locality
 
 
 class LocalityRepository:

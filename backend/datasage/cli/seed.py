@@ -11,11 +11,10 @@ import argparse
 import asyncio
 import csv
 import logging
-import os
 import random
 import sys
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from sqlalchemy import select, text
@@ -23,10 +22,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import async_session_factory, engine
 from datasage.core.security import hash_password
-import datasage.models  # Ensure all models are registered with Base.metadata
 from datasage.models.base import Base
-from datasage.models.reference import City, Locality
 from datasage.models.property import Property
+from datasage.models.reference import City, Locality
 from datasage.models.user import User
 from datasage.models.valuation import ModelVersion
 
@@ -117,7 +115,7 @@ async def seed_cities_and_localities(session: AsyncSession) -> list[Locality]:
             version_label="v0.1-heuristic",
             algorithm="heuristic",
             is_active=True,
-            trained_at=datetime.now(timezone.utc),
+            trained_at=datetime.now(UTC),
         )
         session.add(mv)
 
@@ -151,7 +149,7 @@ def _generate_property(locality: Locality, index: int) -> Property:
         locality=locality.name,
     )
 
-    listed_at = datetime.now(timezone.utc) - timedelta(days=random.randint(1, 180))
+    listed_at = datetime.now(UTC) - timedelta(days=random.randint(1, 180))
 
     # Derive lat/lng from locality centroid with slight random jitter (±0.01°, ~1km)
     lat = locality.centroid_lat + random.uniform(-0.01, 0.01) if locality.centroid_lat else None
@@ -241,6 +239,23 @@ async def run_seed(count: int = 1000) -> None:
                 )
                 session.add(demo)
                 logger.info("Seeded demo user (demo@datasage.ai / DataSage@2026).")
+
+            # Seed admin user
+            existing_admin = await session.execute(
+                select(User).where(User.email == "admin@datasage.ai")
+            )
+            if not existing_admin.scalar_one_or_none():
+                admin_pw_hash = await asyncio.to_thread(hash_password, "DataSage@2026")
+                admin_user = User(
+                    name="Admin User",
+                    email="admin@datasage.ai",
+                    password_hash=admin_pw_hash,
+                    role="admin",
+                    is_active=True,
+                    email_verified=True,
+                )
+                session.add(admin_user)
+                logger.info("Seeded admin user (admin@datasage.ai / DataSage@2026).")
 
             await session.commit()
             logger.info("Seeding complete.")

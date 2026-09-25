@@ -3,21 +3,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-
 # ── Enums ──────────────────────────────────────────────────────────────────
 
-class PropertyType(str, Enum):
+class PropertyType(StrEnum):
     APARTMENT = "apartment"
     BUILDER_FLOOR = "builder_floor"
     HOUSE = "house"
     PLOT = "plot"
 
 
-class SortField(str, Enum):
+class SortField(StrEnum):
     LISTING_PRICE = "listing_price"
     AREA_SQFT = "area_sqft"
     LISTED_AT = "listed_at"
@@ -25,7 +25,7 @@ class SortField(str, Enum):
     RELEVANCE = "relevance"
 
 
-class SortOrder(str, Enum):
+class SortOrder(StrEnum):
     ASC = "asc"
     DESC = "desc"
 
@@ -130,7 +130,7 @@ class PropertyDetailResponse(BaseModel):
     data_source: str
     locality: LocalitySummary
     location: PropertyLocationResponse | None = None
-    images: list[dict] = []
+    images: list[dict[str, Any]] = []
     listed_at: datetime | None = None
     created_at: datetime
 
