@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { formatINR } from '@/lib/formatters';
+import { Icon, IconName } from '@/components/ui/Icon';
 import styles from './page.module.css';
 
 interface LocalityOption {
@@ -14,22 +15,22 @@ interface LocalityOption {
   avg_price_per_sqft: number | null;
 }
 
-const LIFESTYLE_OPTIONS = [
-  { id: 'transit', label: 'Transit', icon: '🚇' },
-  { id: 'schools', label: 'Schools', icon: '🏫' },
-  { id: 'healthcare', label: 'Healthcare', icon: '🏥' },
-  { id: 'shopping', label: 'Shopping', icon: '🛒' },
-  { id: 'parks', label: 'Parks', icon: '🌳' },
-  { id: 'dining', label: 'Dining', icon: '🍽️' },
-  { id: 'safety', label: 'Safety', icon: '🛡️' },
-  { id: 'nightlife', label: 'Nightlife', icon: '🌙' },
+const LIFESTYLE_OPTIONS: Array<{ id: string; label: string; icon: IconName }> = [
+  { id: 'transit', label: 'Rapid Transit', icon: 'transit' },
+  { id: 'schools', label: 'Top Schools', icon: 'school' },
+  { id: 'healthcare', label: 'Healthcare & Hospitals', icon: 'hospital' },
+  { id: 'shopping', label: 'Shopping & Retail', icon: 'shopping' },
+  { id: 'parks', label: 'Parks & Green Spaces', icon: 'park' },
+  { id: 'dining', label: 'Dining & Cafes', icon: 'dining' },
+  { id: 'safety', label: 'Gated Security', icon: 'shield' },
+  { id: 'nightlife', label: 'Nightlife & Social Hubs', icon: 'moon' },
 ];
 
 const PROPERTY_TYPES = [
   { id: 'apartment', label: 'Apartment' },
   { id: 'builder_floor', label: 'Builder Floor' },
-  { id: 'house', label: 'House' },
-  { id: 'plot', label: 'Plot' },
+  { id: 'house', label: 'Independent House / Villa' },
+  { id: 'plot', label: 'Residential Plot' },
 ];
 
 export default function OnboardingPage() {
@@ -48,9 +49,11 @@ export default function OnboardingPage() {
   const [selectedLocalities, setSelectedLocalities] = useState<number[]>([]);
   const [lifestylePriorities, setLifestylePriorities] = useState<string[]>(['transit', 'schools']);
 
-  // Localities data
+  // Available localities
   const [localities, setLocalities] = useState<LocalityOption[]>([]);
   const [localitySearch, setLocalitySearch] = useState('');
+
+  const totalSteps = 4;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -60,15 +63,13 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     api
-      .get<{ data: LocalityOption[] }>('/localities')
-      .then((res) => setLocalities(res.data || []))
+      .get<LocalityOption[]>('/localities')
+      .then(setLocalities)
       .catch(() => {});
   }, []);
 
-  const totalSteps = 4;
-
-  const toggleItem = <T,>(arr: T[], item: T): T[] =>
-    arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
+  const toggleItem = <T,>(list: T[], item: T): T[] =>
+    list.includes(item) ? list.filter((i) => i !== item) : [...list, item];
 
   const handleSave = async () => {
     setSaving(true);
@@ -76,15 +77,15 @@ export default function OnboardingPage() {
       await api.put('/preferences', {
         budget_min: budgetMin,
         budget_max: budgetMax,
-        bhk_preferences: bhkPrefs,
-        preferred_locality_ids: selectedLocalities,
+        bhk_preference: bhkPrefs,
+        property_types: propertyTypes,
+        preferred_localities: selectedLocalities,
         lifestyle_priorities: lifestylePriorities,
-        property_type_preferences: propertyTypes,
       });
       setDone(true);
-      setTimeout(() => router.push('/dashboard'), 2000);
+      setTimeout(() => router.push('/dashboard'), 1500);
     } catch {
-      // Handle silently
+      alert('Failed to save preferences. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -105,10 +106,12 @@ export default function OnboardingPage() {
       <div className={styles.page}>
         <div className="container">
           <div className={styles.successState}>
-            <span className={styles.successIcon}>🎉</span>
-            <h1 className={styles.successTitle}>Preferences Saved!</h1>
+            <span className={styles.successIcon} style={{ display: 'flex', justifyContent: 'center' }}>
+              <Icon name="check" size={48} />
+            </span>
+            <h1 className={styles.successTitle}>Preferences Configured</h1>
             <p className={styles.successText}>
-              We&apos;ll use these to find your perfect property. Redirecting to dashboard...
+              Your criteria has been calibrated with DataSage AI. Redirecting to your dashboard...
             </p>
           </div>
         </div>
@@ -125,10 +128,10 @@ export default function OnboardingPage() {
       <div className="container">
         <div className={styles.header}>
           <h1 className={styles.title}>
-            Tell us about your <span className="gradient-text">Dream Home</span>
+            Buyer Profile & <span className="gradient-text">Preferences</span>
           </h1>
           <p className={styles.subtitle}>
-            Help us personalize your experience with a few quick preferences
+            Calibrate your search criteria to unlock tailored valuation analysis and recommendations
           </p>
         </div>
 
@@ -147,52 +150,55 @@ export default function OnboardingPage() {
         {/* Step 0: Budget */}
         {step === 0 && (
           <div className={styles.stepCard}>
-            <h2 className={styles.stepTitle}>
-              <span className={styles.stepIcon}>💰</span> Budget Range
+            <h2 className={styles.stepTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name="wallet" size={20} /> Budget Allocation
             </h2>
             <p className={styles.stepDescription}>
-              What&apos;s your budget range for a property in Delhi-NCR?
+              Define your target acquisition budget for properties across Delhi-NCR.
             </p>
 
             <div className={styles.budgetDisplay}>
               <div>
-                <span className={styles.budgetLabel}>Minimum</span>
+                <span className={styles.budgetLabel}>Minimum Target</span>
                 <span className={styles.budgetValue}>{formatINR(budgetMin)}</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <span className={styles.budgetLabel}>Maximum</span>
+                <span className={styles.budgetLabel}>Maximum Ceiling</span>
                 <span className={styles.budgetValue}>{formatINR(budgetMax)}</span>
               </div>
             </div>
 
             <div>
-              <label className="input-label">Min Budget</label>
+              <label className="input-label">Min Budget (INR)</label>
               <input
                 type="range"
-                className={styles.rangeInput}
-                min={1000000}
-                max={50000000}
-                step={500000}
+                min="1000000"
+                max="50000000"
+                step="500000"
                 value={budgetMin}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  setBudgetMin(Math.min(val, budgetMax - 500000));
+                  if (val <= budgetMax) setBudgetMin(val);
                 }}
+                className="range-input"
+                style={{ width: '100%', accentColor: 'var(--color-primary-400)' }}
               />
             </div>
-            <div>
-              <label className="input-label">Max Budget</label>
+
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <label className="input-label">Max Budget (INR)</label>
               <input
                 type="range"
-                className={styles.rangeInput}
-                min={1000000}
-                max={100000000}
-                step={500000}
+                min="2000000"
+                max="100000000"
+                step="1000000"
                 value={budgetMax}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  setBudgetMax(Math.max(val, budgetMin + 500000));
+                  if (val >= budgetMin) setBudgetMax(val);
                 }}
+                className="range-input"
+                style={{ width: '100%', accentColor: 'var(--color-primary-400)' }}
               />
             </div>
           </div>
@@ -201,10 +207,10 @@ export default function OnboardingPage() {
         {/* Step 1: BHK & Property Type */}
         {step === 1 && (
           <div className={styles.stepCard}>
-            <h2 className={styles.stepTitle}>
-              <span className={styles.stepIcon}>🏠</span> BHK & Property Type
+            <h2 className={styles.stepTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name="building" size={20} /> Configuration & Typology
             </h2>
-            <p className={styles.stepDescription}>Select your preferred configurations.</p>
+            <p className={styles.stepDescription}>Select your required layouts and preferred asset classes.</p>
 
             <label className="input-label">BHK Preference</label>
             <div className={styles.checkGrid}>
@@ -237,18 +243,18 @@ export default function OnboardingPage() {
         {/* Step 2: Localities */}
         {step === 2 && (
           <div className={styles.stepCard}>
-            <h2 className={styles.stepTitle}>
-              <span className={styles.stepIcon}>📍</span> Preferred Localities
+            <h2 className={styles.stepTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name="pin" size={20} /> Target Localities
             </h2>
             <p className={styles.stepDescription}>
-              Select localities you&apos;re interested in across Delhi-NCR.
+              Select specific micro-markets of interest across Delhi, Gurgaon, Noida, and NCR.
             </p>
 
             <div className={styles.localitySearch}>
               <input
                 type="text"
                 className="input"
-                placeholder="Search localities..."
+                placeholder="Search micro-markets (e.g. Rohini, Golf Course Road, Sector 150)..."
                 value={localitySearch}
                 onChange={(e) => setLocalitySearch(e.target.value)}
               />
@@ -268,7 +274,7 @@ export default function OnboardingPage() {
                       <span className={styles.localityCity}> — {loc.city}</span>
                     </div>
                     <div className={`${styles.localityCheck} ${isSelected ? styles.localityCheckActive : ''}`}>
-                      {isSelected ? '✓' : ''}
+                      {isSelected ? <Icon name="check" size={12} /> : null}
                     </div>
                   </div>
                 );
@@ -280,11 +286,11 @@ export default function OnboardingPage() {
         {/* Step 3: Lifestyle Priorities */}
         {step === 3 && (
           <div className={styles.stepCard}>
-            <h2 className={styles.stepTitle}>
-              <span className={styles.stepIcon}>✨</span> Lifestyle Priorities
+            <h2 className={styles.stepTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name="sliders" size={20} /> Lifestyle & Infrastructure Priorities
             </h2>
             <p className={styles.stepDescription}>
-              What matters most to you in a neighborhood?
+              Rank the civic amenities and infrastructure factors that matter most for your household.
             </p>
 
             <div className={styles.chipGrid}>
@@ -293,8 +299,11 @@ export default function OnboardingPage() {
                   key={opt.id}
                   className={`${styles.chip} ${lifestylePriorities.includes(opt.id) ? styles.chipActive : ''}`}
                   onClick={() => setLifestylePriorities(toggleItem(lifestylePriorities, opt.id))}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <span className={styles.chipIcon}>{opt.icon}</span>
+                  <span className={styles.chipIcon} style={{ display: 'flex', alignItems: 'center' }}>
+                    <Icon name={opt.icon} size={16} />
+                  </span>
                   {opt.label}
                 </div>
               ))}
@@ -306,18 +315,24 @@ export default function OnboardingPage() {
         <div className={styles.navRow}>
           {step > 0 ? (
             <button onClick={() => setStep(step - 1)} className="btn btn-secondary">
-              ← Back
+              Back
             </button>
           ) : (
             <div />
           )}
           {step < totalSteps - 1 ? (
             <button onClick={() => setStep(step + 1)} className="btn btn-primary">
-              Next →
+              Continue
             </button>
           ) : (
-            <button onClick={handleSave} className="btn btn-primary btn-lg" disabled={saving}>
-              {saving ? 'Saving...' : '✨ Save Preferences'}
+            <button
+              onClick={handleSave}
+              className="btn btn-primary btn-lg"
+              disabled={saving}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+            >
+              <Icon name="check" size={16} />
+              {saving ? 'Saving...' : 'Save Preferences'}
             </button>
           )}
         </div>

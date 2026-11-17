@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Icon, IconName } from '@/components/ui/Icon';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -8,13 +9,16 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroGlow} />
         <div className={styles.heroContent}>
-          <div className={styles.badge}>🏠 AI-Powered Real Estate Intelligence</div>
+          <div className={styles.badge}>
+            <span className={styles.badgeDot} />
+            Institutional Real Estate Intelligence
+          </div>
           <h1 className={styles.heroTitle}>
             The AI Behind <span className="gradient-text">Better Buys</span>
           </h1>
           <p className={styles.heroSubtitle}>
             Stop guessing. DataSage analyzes property valuations, location quality,
-            and market trends to help you make smarter real estate decisions in Delhi-NCR.
+            and micro-market trends to help you make smarter residential investments across Delhi-NCR.
           </p>
           <div className={styles.heroCta}>
             <Link href="/properties" className="btn btn-primary btn-lg">
@@ -35,34 +39,34 @@ export default function Home() {
           </h2>
           <div className={styles.featureGrid}>
             <FeatureCard
-              icon="📊"
+              icon="chart"
               title="AI Valuation"
-              description="XGBoost ML model predicts fair market value and classifies properties as overpriced, fair, or underpriced."
+              description="Statistical and machine learning models predict fair market value and classify properties as overpriced, fair, or underpriced."
             />
             <FeatureCard
-              icon="🗺️"
+              icon="map"
               title="Location Intelligence"
-              description="Automated scoring based on nearby schools, hospitals, metro stations, parks, and shopping from OpenStreetMap."
+              description="Automated scoring based on nearby schools, hospitals, metro stations, parks, and shopping corridors."
             />
             <FeatureCard
-              icon="🔍"
-              title="Explainable AI"
-              description="SHAP-powered explanations tell you exactly which features drive each price prediction. No black boxes."
+              icon="search"
+              title="Explainable Valuation"
+              description="SHAP-powered contribution analysis reveals exact rupee impact of area, BHK, floor level, and locality base rates."
             />
             <FeatureCard
-              icon="💡"
+              icon="lightbulb"
               title="Smart Recommendations"
               description="Personalized property matches based on your budget, lifestyle priorities, and commute preferences."
             />
             <FeatureCard
-              icon="⚖️"
+              icon="scale"
               title="Side-by-Side Comparison"
-              description="Compare up to 4 properties across 15+ dimensions with automated best-pick analysis."
+              description="Compare up to 4 properties across 15+ dimensions with automated best-pick and trade-off analysis."
             />
             <FeatureCard
-              icon="📈"
+              icon="trendingUp"
               title="Investment Insights"
-              description="Locality price trends, rental yield estimates, and growth potential scoring for investors."
+              description="Locality price trends, rental yield estimates, and 5-year capital appreciation projections for investors."
             />
           </div>
         </div>
@@ -72,10 +76,10 @@ export default function Home() {
       <section className={styles.stats}>
         <div className="container">
           <div className={styles.statsGrid}>
-            <StatCard number="1,000+" label="Properties Analyzed" />
+            <StatCard number="4,500+" label="Verified Listings" />
             <StatCard number="50+" label="Delhi-NCR Localities" />
-            <StatCard number="30+" label="AI Features" />
-            <StatCard number="6" label="Cities Covered" />
+            <StatCard number="30+" label="Valuation Features" />
+            <StatCard number="6" label="NCR Cities Covered" />
           </div>
         </div>
       </section>
@@ -86,11 +90,11 @@ export default function Home() {
           <div className={styles.ctaCard}>
             <h2 className={styles.ctaTitle}>Ready to make smarter property decisions?</h2>
             <p className={styles.ctaText}>
-              Create a free account to unlock AI valuations, personalized recommendations,
-              and property comparisons.
+              Create an account to unlock explainable AI valuations, personalized recommendations,
+              and side-by-side comparison matrices.
             </p>
             <Link href="/register" className="btn btn-primary btn-lg">
-              Get Started — It&apos;s Free
+              Get Started — Free Access
             </Link>
           </div>
         </div>
@@ -104,13 +108,15 @@ function FeatureCard({
   title,
   description,
 }: {
-  icon: string;
+  icon: IconName;
   title: string;
   description: string;
 }) {
   return (
     <div className={styles.featureCard}>
-      <span className={styles.featureIcon}>{icon}</span>
+      <span className={styles.featureIcon}>
+        <Icon name={icon} size={22} />
+      </span>
       <h3 className={styles.featureTitle}>{title}</h3>
       <p className={styles.featureDesc}>{description}</p>
     </div>

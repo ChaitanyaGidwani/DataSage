@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import PropertyCard from '@/components/property/PropertyCard';
+import { Icon } from '@/components/ui/Icon';
 import styles from './page.module.css';
 
 interface PropertySummary {
@@ -222,7 +223,9 @@ function PropertiesContent() {
 
                 {!loading && properties.length === 0 && (
                   <div className={styles.empty}>
-                    <span className={styles.emptyIcon}>🔍</span>
+                    <span className={styles.emptyIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="search" size={40} />
+                    </span>
                     <p className={styles.emptyText}>No properties match your filters</p>
                     <button onClick={() => { setBhk(''); setMinPrice(''); setMaxPrice(''); setPropertyType(''); handleFilter(); }} className="btn btn-ghost">
                       Clear Filters

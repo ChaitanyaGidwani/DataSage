@@ -1,49 +1,46 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { formatINR, formatFurnishing, formatFacing } from '@/lib/formatters';
+import { formatINR, formatFurnishing } from '@/lib/formatters';
+import { Icon, IconName } from '@/components/ui/Icon';
 import styles from './page.module.css';
 
-interface ComparisonItem {
+interface ComparedProperty {
   id: string;
   title: string;
-  city: string;
   locality: string;
+  city: string;
   property_type: string;
   bhk: number;
   area_sqft: number;
   listing_price: number;
   price_per_sqft: number;
   floor_info: string;
-  furnishing: string | null;
   facing: string | null;
+  furnishing: string | null;
   parking_count: number;
-  construction_year: number | null;
-  predicted_value: number | null;
-  price_gap_pct: number | null;
-  pricing_classification: string | null;
-  valuation_confidence: number | null;
   location_score: number;
   investment_score: number;
   estimated_rental_yield_pct: number;
+  pricing_classification: string | null;
+  predicted_value: number | null;
   key_advantages: string[];
   key_tradeoffs: string[];
 }
 
 interface ComparisonSummary {
   best_value_pick_id: string | null;
-  best_value_reason: string | null;
   best_location_pick_id: string | null;
-  best_location_reason: string | null;
-  highest_investment_pick_id: string | null;
   cheapest_per_sqft_id: string | null;
+  highest_investment_pick_id: string | null;
+  trade_off_summary: string;
 }
 
-interface ComparisonResponse {
-  properties: ComparisonItem[];
+interface CompareResponse {
+  properties: ComparedProperty[];
   summary: ComparisonSummary;
 }
 
@@ -53,10 +50,7 @@ export default function ComparePage() {
       fallback={
         <div className={styles.page}>
           <div className="container">
-            <div className={styles.loadingGrid}>
-              <div className={`skeleton ${styles.skeleton}`} />
-              <div className={`skeleton ${styles.skeleton}`} />
-            </div>
+            <div className="skeleton" style={{ height: 400 }} />
           </div>
         </div>
       }
@@ -68,52 +62,46 @@ export default function ComparePage() {
 
 function CompareContent() {
   const searchParams = useSearchParams();
-  const idsParam = searchParams.get('ids') || '';
-  const ids = useMemo(
-    () =>
-      idsParam
-        .split(',')
-        .map((id) => id.trim())
-        .filter(Boolean),
-    [idsParam]
-  );
+  const idsParam = searchParams.get('ids');
+  const ids = idsParam ? idsParam.split(',').filter(Boolean) : [];
 
-  const [data, setData] = useState<ComparisonResponse | null>(null);
-  const [loading, setLoading] = useState(() => ids.length >= 2);
+  const [data, setData] = useState<CompareResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (ids.length < 2) {
+      setLoading(false);
       return;
     }
 
-    let isMounted = true;
     const fetchComparison = async () => {
+      setLoading(true);
+      setError('');
       try {
-        const response = await api.post<ComparisonResponse>('/comparison', {
-          property_ids: ids,
-        });
-        if (isMounted) setData(response);
+        const result = await api.get<CompareResponse>(`/compare?ids=${ids.join(',')}`);
+        setData(result);
       } catch {
-        if (isMounted) setError('Failed to load comparison data');
+        setError('Failed to load comparison data. Please check property IDs.');
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     };
 
     fetchComparison();
-    return () => {
-      isMounted = false;
-    };
-  }, [ids]);
+  }, [idsParam]);
 
   if (loading) {
     return (
       <div className={styles.page}>
         <div className="container">
-          <div className={styles.loadingGrid}>
+          <div className={styles.header}>
+            <div className={`skeleton ${styles.skeleton}`} style={{ height: 48, width: 300, marginBottom: 8 }} />
+            <div className={`skeleton ${styles.skeleton}`} style={{ height: 20, width: 200 }} />
+          </div>
+          <div className={styles.matrix}>
             {ids.map((id) => (
-              <div key={id} className={`skeleton ${styles.skeleton}`} />
+              <div key={id} className={`skeleton ${styles.skeleton}`} style={{ height: 500 }} />
             ))}
           </div>
         </div>
@@ -126,12 +114,14 @@ function CompareContent() {
       <div className={styles.page}>
         <div className="container">
           <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>⚖️</span>
+            <span className={styles.emptyIcon} style={{ display: 'flex', justifyContent: 'center' }}>
+              <Icon name="scale" size={48} />
+            </span>
             <h1 className={styles.emptyTitle}>
-              {error || 'Select properties to compare'}
+              {error || 'Select Properties to Compare'}
             </h1>
             <p className={styles.emptyText}>
-              Add 2 to 4 properties from the search results to see a side-by-side comparison.
+              Add 2 to 4 properties from search results to see a normalized side-by-side analytical matrix.
             </p>
             <Link href="/properties" className="btn btn-primary">
               Browse Properties
@@ -150,11 +140,11 @@ function CompareContent() {
       ? styles.matrix3
       : styles.matrix4;
 
-  const getWinnerTag = (id: string): string | null => {
-    if (summary.best_value_pick_id === id) return '🏆 Best Value';
-    if (summary.best_location_pick_id === id) return '📍 Top Location';
-    if (summary.cheapest_per_sqft_id === id) return '💰 Cheapest/sqft';
-    if (summary.highest_investment_pick_id === id) return '📈 Best Investment';
+  const getWinnerTag = (id: string): { label: string; icon: IconName } | null => {
+    if (summary.best_value_pick_id === id) return { label: 'Best Value', icon: 'award' };
+    if (summary.best_location_pick_id === id) return { label: 'Top Location', icon: 'pin' };
+    if (summary.cheapest_per_sqft_id === id) return { label: 'Best Rate/sqft', icon: 'tag' };
+    if (summary.highest_investment_pick_id === id) return { label: 'Top Investment', icon: 'trendingUp' };
     return null;
   };
 
@@ -163,10 +153,10 @@ function CompareContent() {
       <div className="container">
         <div className={styles.header}>
           <h1 className={styles.title}>
-            Property <span className="gradient-text">Comparison</span>
+            Property <span className="gradient-text">Comparison Matrix</span>
           </h1>
           <p className={styles.subtitle}>
-            Side-by-side analysis of {properties.length} properties
+            Normalized multi-dimensional assessment of {properties.length} selected properties
           </p>
         </div>
 
@@ -174,7 +164,9 @@ function CompareContent() {
         <div className={styles.summaryRow}>
           {summary.best_value_pick_id && (
             <div className={styles.summaryBadge}>
-              <span className={styles.badgeIcon}>🏆</span>
+              <span className={styles.badgeIcon} style={{ display: 'flex', alignItems: 'center' }}>
+                <Icon name="award" size={20} />
+              </span>
               <div>
                 <span className={styles.badgeLabel}>Best Value Pick</span>
                 <br />
@@ -186,9 +178,11 @@ function CompareContent() {
           )}
           {summary.best_location_pick_id && (
             <div className={styles.summaryBadge}>
-              <span className={styles.badgeIcon}>📍</span>
+              <span className={styles.badgeIcon} style={{ display: 'flex', alignItems: 'center' }}>
+                <Icon name="pin" size={20} />
+              </span>
               <div>
-                <span className={styles.badgeLabel}>Top Location</span>
+                <span className={styles.badgeLabel}>Top Location Score</span>
                 <br />
                 <span className={styles.badgeValue}>
                   {properties.find((p) => p.id === summary.best_location_pick_id)?.locality}
@@ -198,9 +192,11 @@ function CompareContent() {
           )}
           {summary.cheapest_per_sqft_id && (
             <div className={styles.summaryBadge}>
-              <span className={styles.badgeIcon}>💰</span>
+              <span className={styles.badgeIcon} style={{ display: 'flex', alignItems: 'center' }}>
+                <Icon name="tag" size={20} />
+              </span>
               <div>
-                <span className={styles.badgeLabel}>Cheapest per sqft</span>
+                <span className={styles.badgeLabel}>Lowest Rate per sq ft</span>
                 <br />
                 <span className={styles.badgeValue}>
                   ₹{properties.find((p) => p.id === summary.cheapest_per_sqft_id)?.price_per_sqft.toLocaleString('en-IN')}/sqft
@@ -213,50 +209,56 @@ function CompareContent() {
         {/* Comparison matrix */}
         <div className={`${styles.matrix} ${colClass}`}>
           {properties.map((prop) => {
-            const winnerTag = getWinnerTag(prop.id);
+            const winner = getWinnerTag(prop.id);
             return (
               <div
                 key={prop.id}
-                className={`${styles.propertyCol} ${winnerTag ? styles.winnerCol : ''}`}
+                className={`${styles.propertyCol} ${winner ? styles.winnerCol : ''}`}
               >
-                {winnerTag && <span className={styles.winnerTag}>{winnerTag}</span>}
+                {winner && (
+                  <span className={styles.winnerTag} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Icon name={winner.icon} size={13} /> {winner.label}
+                  </span>
+                )}
 
                 <div className={styles.colHeader}>
-                  <span className={styles.colHeaderIcon}>🏠</span>
+                  <span className={styles.colHeaderIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="building" size={26} />
+                  </span>
                 </div>
 
                 <div className={styles.colBody}>
                   <h3 className={styles.colTitle}>{prop.title}</h3>
-                  <p className={styles.colLocation}>
-                    📍 {prop.locality}, {prop.city}
+                  <p className={styles.colLocation} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Icon name="pin" size={13} /> {prop.locality}, {prop.city}
                   </p>
 
                   {prop.pricing_classification && (
                     <span className={`badge badge-${prop.pricing_classification} ${styles.priceBadge}`}>
                       {prop.pricing_classification === 'underpriced'
-                        ? '▼ Underpriced'
+                        ? 'Underpriced'
                         : prop.pricing_classification === 'overpriced'
-                        ? '▲ Overpriced'
-                        : '● Fair Price'}
+                        ? 'Overpriced'
+                        : 'Fair Price'}
                     </span>
                   )}
 
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Price</span>
+                    <span className={styles.metricLabel}>Listing Price</span>
                     <span className={styles.metricValue}>{formatINR(prop.listing_price)}</span>
                   </div>
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Price/sqft</span>
+                    <span className={styles.metricLabel}>Price / sq ft</span>
                     <span className={`${styles.metricValue} ${summary.cheapest_per_sqft_id === prop.id ? styles.metricHighlight : ''}`}>
                       ₹{prop.price_per_sqft.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>BHK</span>
+                    <span className={styles.metricLabel}>Configuration</span>
                     <span className={styles.metricValue}>{prop.bhk} BHK</span>
                   </div>
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Area</span>
+                    <span className={styles.metricLabel}>Carpet Area</span>
                     <span className={styles.metricValue}>{prop.area_sqft.toLocaleString('en-IN')} sqft</span>
                   </div>
                   <div className={styles.metricRow}>
@@ -266,23 +268,23 @@ function CompareContent() {
                     </span>
                   </div>
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Investment</span>
+                    <span className={styles.metricLabel}>Investment Score</span>
                     <span className={styles.metricValue}>{prop.investment_score}/100</span>
                   </div>
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Rental Yield</span>
+                    <span className={styles.metricLabel}>Gross Rental Yield</span>
                     <span className={styles.metricValue}>{prop.estimated_rental_yield_pct.toFixed(1)}%</span>
                   </div>
                   {prop.predicted_value && (
                     <div className={styles.metricRow}>
-                      <span className={styles.metricLabel}>AI Value</span>
+                      <span className={styles.metricLabel}>AI Fair Value</span>
                       <span className={`${styles.metricValue} ${styles.metricHighlight}`}>
                         {formatINR(prop.predicted_value)}
                       </span>
                     </div>
                   )}
                   <div className={styles.metricRow}>
-                    <span className={styles.metricLabel}>Floor</span>
+                    <span className={styles.metricLabel}>Floor Level</span>
                     <span className={styles.metricValue}>{prop.floor_info}</span>
                   </div>
                   <div className={styles.metricRow}>
@@ -293,13 +295,13 @@ function CompareContent() {
                   {(prop.key_advantages.length > 0 || prop.key_tradeoffs.length > 0) && (
                     <div className={styles.tagList}>
                       {prop.key_advantages.map((adv, i) => (
-                        <span key={`adv-${i}`} className={styles.tagAdvantage}>
-                          ✓ {adv}
+                        <span key={`adv-${i}`} className={styles.tagAdvantage} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Icon name="check" size={12} /> {adv}
                         </span>
                       ))}
                       {prop.key_tradeoffs.map((t, i) => (
-                        <span key={`t-${i}`} className={styles.tagTradeoff}>
-                          ⚠ {t}
+                        <span key={`t-${i}`} className={styles.tagTradeoff} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Icon name="alert" size={12} /> {t}
                         </span>
                       ))}
                     </div>
@@ -310,9 +312,9 @@ function CompareContent() {
           })}
         </div>
 
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', marginTop: 'var(--space-8)' }}>
           <Link href="/properties" className="btn btn-secondary">
-            ← Back to Search
+            Back to Properties
           </Link>
         </div>
       </div>

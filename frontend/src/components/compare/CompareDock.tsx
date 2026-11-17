@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCompare } from '@/contexts/CompareContext';
+import { Icon } from '@/components/ui/Icon';
 import styles from './CompareDock.module.css';
 
 export default function CompareDock() {
@@ -13,7 +14,9 @@ export default function CompareDock() {
     <div className={`${styles.dock} ${isVisible ? styles.dockVisible : ''}`}>
       <div className={styles.inner}>
         <div className={styles.info}>
-          <span className={styles.icon}>⚡</span>
+          <span className={styles.icon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Icon name="scale" size={16} />
+          </span>
           <div>
             <span className={styles.label}>Compare Properties</span>
             <span className={styles.count}> — {compareIds.length} of 4 selected</span>
@@ -37,8 +40,9 @@ export default function CompareDock() {
             <Link
               href={`/compare?ids=${compareIds.join(',')}`}
               className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              Compare Now →
+              Compare Analysis <Icon name="arrowRight" size={14} />
             </Link>
           )}
         </div>
