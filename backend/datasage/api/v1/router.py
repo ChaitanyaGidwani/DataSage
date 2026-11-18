@@ -27,6 +27,7 @@ api_v1_router.include_router(history_router, prefix="/search-history", tags=["Se
 api_v1_router.include_router(preferences_router, prefix="/preferences", tags=["Preferences"])
 api_v1_router.include_router(valuations_router, prefix="/valuations", tags=["Valuations"])
 api_v1_router.include_router(comparison_router, prefix="/comparison", tags=["Comparison"])
+api_v1_router.include_router(comparison_router, prefix="/compare", tags=["Comparison"])
 api_v1_router.include_router(location_router, prefix="/location", tags=["Location Intelligence"])
 api_v1_router.include_router(investment_router, prefix="/investment", tags=["Investment Analysis"])
 api_v1_router.include_router(recommendations_router, prefix="/recommendations", tags=["Recommendations"])

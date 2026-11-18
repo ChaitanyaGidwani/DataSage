@@ -79,7 +79,7 @@ function CompareContent() {
       setLoading(true);
       setError('');
       try {
-        const result = await api.get<CompareResponse>(`/compare?ids=${ids.join(',')}`);
+        const result = await api.get<CompareResponse>(`/comparison?ids=${ids.join(',')}`);
         setData(result);
       } catch {
         setError('Failed to load comparison data. Please check property IDs.');
