@@ -35,6 +35,8 @@ class SortOrder(StrEnum):
 class PropertySearchParams(BaseModel):
     """Query parameters for property search."""
 
+    q: str | None = None
+    pricing_classification: str | None = None
     locality_id: int | None = None
     city_id: int | None = None
     bhk: int | None = Field(None, ge=1, le=10)

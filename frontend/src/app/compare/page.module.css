@@ -239,6 +239,169 @@
   gap: var(--space-6);
 }
 
+/* Column Actions & Remove Button */
+.removeBtn {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 3;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.removeBtn:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: white;
+}
+
+/* Add Property Column in Matrix */
+.addPropertyCol {
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 400px;
+  transition: border-color var(--transition-fast);
+}
+
+.addPropertyCol:hover {
+  border-color: var(--color-primary-500);
+}
+
+/* Compare Search Selector */
+.compareSearchWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  margin: var(--space-6) auto;
+}
+
+.compareSearchInput {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+}
+
+.compareSearchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.searchDropdownItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.searchDropdownItem:hover {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.searchItemTitle {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+
+.searchItemSub {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* Preset Cards */
+.presetsSection {
+  margin-top: var(--space-8);
+  text-align: left;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.presetsTitle {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+  text-align: center;
+}
+
+.presetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+.presetCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.presetCard:hover {
+  border-color: var(--color-primary-500);
+  background: rgba(16, 185, 129, 0.05);
+  transform: translateY(-2px);
+}
+
+.presetName {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.presetDesc {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
 /* Pricing badge */
 .priceBadge {
   display: inline-block;

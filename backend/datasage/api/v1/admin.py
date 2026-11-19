@@ -10,6 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
+from datasage.models.admin import Dataset
 from datasage.models.property import Property
 from datasage.models.reference import Locality
 from datasage.models.user import User
@@ -56,6 +57,40 @@ async def get_admin_stats(
         "health_status": "healthy",
         "system_status": "healthy",
     }
+
+
+@router.get("/datasets")
+async def get_admin_datasets(
+    session: AsyncSession = Depends(get_session),
+) -> list[dict[str, Any]]:
+    """Get registered external datasets and their import status."""
+    from sqlalchemy.orm import selectinload
+
+    stmt = select(Dataset).options(selectinload(Dataset.imports)).order_by(Dataset.created_at.desc())
+    res = await session.execute(stmt)
+    datasets = res.scalars().all()
+
+    return [
+        {
+            "id": str(d.id),
+            "name": d.name,
+            "status": d.status,
+            "description": d.description,
+            "property_count": d.property_count,
+            "imports": [
+                {
+                    "file_name": imp.file_name,
+                    "total_rows": imp.total_rows,
+                    "valid_rows": imp.valid_rows,
+                    "quarantined_rows": imp.quarantined_rows,
+                    "status": imp.status,
+                    "completed_at": imp.completed_at.isoformat() if imp.completed_at else None,
+                }
+                for imp in (d.imports or [])
+            ],
+        }
+        for d in datasets
+    ]
 
 
 @router.post("/trigger-valuations")

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { formatINR, formatArea, formatPropertyType } from '@/lib/formatters';
 import { useCompare } from '@/contexts/CompareContext';
+import { Icon } from '@/components/ui/Icon';
 import styles from './PropertyCard.module.css';
 
 interface PropertyCardProps {
@@ -49,14 +50,29 @@ export default function PropertyCard({
       <div className={styles.imageWrapper}>
         <div
           className={styles.imagePlaceholder}
-          style={imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
+          style={
+            imageUrl
+              ? {
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : undefined
+          }
         >
-          {!imageUrl && <span className={styles.imageIcon}>🏠</span>}
+          {!imageUrl && (
+            <span className={styles.imageIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="building" size={40} />
+            </span>
+          )}
         </div>
         {pricingClassification && (
           <span className={`badge badge-${pricingClassification} ${styles.pricingBadge}`}>
-            {pricingClassification === 'underpriced' ? '▼ Underpriced' :
-             pricingClassification === 'overpriced' ? '▲ Overpriced' : '● Fair Price'}
+            {pricingClassification === 'underpriced'
+              ? 'Underpriced'
+              : pricingClassification === 'overpriced'
+              ? 'Overpriced'
+              : 'Fair Price'}
           </span>
         )}
         <button
@@ -65,7 +81,7 @@ export default function PropertyCard({
           title={inCompare ? 'Remove from compare' : isFull ? 'Compare list full' : 'Add to compare'}
           aria-label={inCompare ? 'Remove from compare' : 'Add to compare'}
         >
-          ⚡
+          <Icon name="scale" size={14} />
         </button>
       </div>
 
@@ -76,7 +92,9 @@ export default function PropertyCard({
         <h3 className={styles.title}>{title}</h3>
 
         <div className={styles.location}>
-          <span className={styles.locationIcon}>📍</span>
+          <span className={styles.locationIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Icon name="pin" size={13} />
+          </span>
           {locality}, {city}
         </div>
 
@@ -102,3 +120,4 @@ export default function PropertyCard({
   );
 }
 
+export { PropertyCard };

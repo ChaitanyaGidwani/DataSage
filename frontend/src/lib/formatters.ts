@@ -72,3 +72,26 @@ export function formatPercent(value: number, decimals = 1): string {
   const sign = value > 0 ? '+' : '';
   return `${sign}${value.toFixed(decimals)}%`;
 }
+
+/**
+ * Format direction facing (e.g. north_west -> North West).
+ */
+export function formatFacing(facing: string): string {
+  if (!facing) return '';
+  return facing
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
+ * Format furnishing status (e.g. semi_furnished -> Semi Furnished).
+ */
+export function formatFurnishing(furnishing: string): string {
+  if (!furnishing) return '';
+  return furnishing
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+

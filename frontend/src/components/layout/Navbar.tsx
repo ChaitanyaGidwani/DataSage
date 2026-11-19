@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompare } from '@/contexts/CompareContext';
+import { Icon } from '@/components/ui/Icon';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -21,7 +22,10 @@ export default function Navbar() {
           <Link href="/properties" className={styles.navLink}>
             Search
           </Link>
-          <Link href="/compare" className={styles.navLink}>
+          <Link
+            href={compareIds.length > 0 ? `/compare?ids=${compareIds.join(',')}` : '/compare'}
+            className={styles.navLink}
+          >
             Compare{compareIds.length > 0 ? ` (${compareIds.length})` : ''}
           </Link>
           {isAuthenticated && (
@@ -39,8 +43,8 @@ export default function Navbar() {
         <div className={styles.actions}>
           {isAuthenticated ? (
             <div className={styles.userMenu}>
-              <Link href="/onboarding" className="btn btn-ghost btn-sm">
-                ✨ Preferences
+              <Link href="/onboarding" className="btn btn-ghost btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Icon name="sliders" size={14} /> Preferences
               </Link>
               <span className={styles.userName}>{user?.name}</span>
               <button onClick={logout} className="btn btn-ghost btn-sm">
