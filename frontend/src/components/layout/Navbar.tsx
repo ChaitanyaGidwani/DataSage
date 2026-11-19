@@ -22,7 +22,10 @@ export default function Navbar() {
           <Link href="/properties" className={styles.navLink}>
             Search
           </Link>
-          <Link href="/compare" className={styles.navLink}>
+          <Link
+            href={compareIds.length > 0 ? `/compare?ids=${compareIds.join(',')}` : '/compare'}
+            className={styles.navLink}
+          >
             Compare{compareIds.length > 0 ? ` (${compareIds.length})` : ''}
           </Link>
           {isAuthenticated && (

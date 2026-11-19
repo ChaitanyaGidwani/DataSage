@@ -1,8 +1,28 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Icon, IconName } from '@/components/ui/Icon';
 import styles from './page.module.css';
 
 export default function Home() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBhk, setSelectedBhk] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (selectedBhk) params.set('bhk', selectedBhk);
+    if (selectedCity) params.set('city_id', selectedCity);
+    if (selectedType) params.set('property_type', selectedType);
+    router.push(`/properties?${params.toString()}`);
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -18,15 +38,130 @@ export default function Home() {
           </h1>
           <p className={styles.heroSubtitle}>
             Stop guessing. DataSage analyzes property valuations, location quality,
-            and micro-market trends to help you make smarter residential investments across Delhi-NCR.
+            and micro-market trends across 4,500+ verified Delhi-NCR listings.
           </p>
+
           <div className={styles.heroCta}>
             <Link href="/properties" className="btn btn-primary btn-lg">
-              Explore Properties
+              Explore All Properties
             </Link>
-            <Link href="/register" className="btn btn-secondary btn-lg">
-              Create Free Account
+            <Link href="/compare" className="btn btn-secondary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Icon name="scale" size={18} /> Comparison Matrix
             </Link>
+          </div>
+
+          {/* Interactive Hero Search Engine */}
+          <div className={styles.heroSearchCard}>
+            <form onSubmit={handleSearch} className={styles.searchForm}>
+              <div className={styles.searchPrimaryRow}>
+                <div className={styles.searchInputWrapper}>
+                  <span className={styles.searchIcon}>
+                    <Icon name="search" size={18} />
+                  </span>
+                  <input
+                    type="text"
+                    className={styles.searchInput}
+                    placeholder="Search by society, locality, or project (e.g., Shipra Suncity, DLF Phase 2, Tata Primanti)..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className={`btn btn-primary ${styles.searchSubmitBtn}`}>
+                  <Icon name="search" size={16} /> Search Properties
+                </button>
+              </div>
+
+              <div className={styles.searchFiltersRow}>
+                <select
+                  className={styles.searchSelect}
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  aria-label="Filter by City"
+                >
+                  <option value="">All NCR Cities</option>
+                  <option value="2">Gurgaon</option>
+                  <option value="3">New Delhi</option>
+                  <option value="4">Ghaziabad (Indirapuram)</option>
+                  <option value="1">Noida</option>
+                  <option value="5">Greater Noida</option>
+                  <option value="6">Faridabad</option>
+                </select>
+
+                <select
+                  className={styles.searchSelect}
+                  value={selectedBhk}
+                  onChange={(e) => setSelectedBhk(e.target.value)}
+                  aria-label="Filter by BHK"
+                >
+                  <option value="">All Configurations (BHK)</option>
+                  <option value="1">1 BHK</option>
+                  <option value="2">2 BHK</option>
+                  <option value="3">3 BHK</option>
+                  <option value="4">4 BHK</option>
+                  <option value="5">5+ BHK</option>
+                </select>
+
+                <select
+                  className={styles.searchSelect}
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  aria-label="Filter by Property Type"
+                >
+                  <option value="">All Property Types</option>
+                  <option value="apartment">Apartment / High-rise</option>
+                  <option value="builder_floor">Independent Builder Floor</option>
+                  <option value="house">Independent House / Villa</option>
+                  <option value="plot">Residential Plot</option>
+                </select>
+              </div>
+            </form>
+
+            {/* Quick Search Chips */}
+            <div className={styles.quickChips}>
+              <span className={styles.chipLabel}>Trending:</span>
+              <button
+                type="button"
+                className={`${styles.chipBtn} ${styles.chipHighlight}`}
+                onClick={() => router.push('/properties?q=Shipra')}
+              >
+                Shipra Suncity
+              </button>
+              <button
+                type="button"
+                className={styles.chipBtn}
+                onClick={() => router.push('/properties?q=Tata+Primanti')}
+              >
+                Tata Primanti
+              </button>
+              <button
+                type="button"
+                className={styles.chipBtn}
+                onClick={() => router.push('/properties?q=DLF+Phase+2')}
+              >
+                DLF Phase 2
+              </button>
+              <button
+                type="button"
+                className={styles.chipBtn}
+                onClick={() => router.push('/properties?q=Godrej')}
+              >
+                Godrej Nature Plus
+              </button>
+              <button
+                type="button"
+                className={styles.chipBtn}
+                onClick={() => router.push('/properties?q=Suncity')}
+              >
+                Suncity Heights
+              </button>
+              <button
+                type="button"
+                className={`${styles.chipBtn} ${styles.chipHighlight}`}
+                onClick={() => router.push('/properties?pricing_classification=underpriced')}
+              >
+                Underpriced Deals
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -76,9 +211,9 @@ export default function Home() {
       <section className={styles.stats}>
         <div className="container">
           <div className={styles.statsGrid}>
-            <StatCard number="4,500+" label="Verified Listings" />
+            <StatCard number="4,557" label="Verified NCR Listings" />
             <StatCard number="50+" label="Delhi-NCR Localities" />
-            <StatCard number="30+" label="Valuation Features" />
+            <StatCard number="87.9%" label="ML Model R² Accuracy" />
             <StatCard number="6" label="NCR Cities Covered" />
           </div>
         </div>
@@ -90,12 +225,16 @@ export default function Home() {
           <div className={styles.ctaCard}>
             <h2 className={styles.ctaTitle}>Ready to make smarter property decisions?</h2>
             <p className={styles.ctaText}>
-              Create an account to unlock explainable AI valuations, personalized recommendations,
-              and side-by-side comparison matrices.
+              Explore explainable AI valuations, location intelligence, and multi-asset comparison matrices.
             </p>
-            <Link href="/register" className="btn btn-primary btn-lg">
-              Get Started — Free Access
-            </Link>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/properties" className="btn btn-primary btn-lg">
+                Start Searching
+              </Link>
+              <Link href="/compare?ids=a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d,f24cd120-abaa-43da-9395-1edde18da205,7cb1a4ec-b076-49be-b01a-909a7af33fd3" className="btn btn-secondary btn-lg">
+                View Sample Comparison
+              </Link>
+            </div>
           </div>
         </div>
       </section>

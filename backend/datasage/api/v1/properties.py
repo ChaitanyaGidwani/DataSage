@@ -22,6 +22,8 @@ router = APIRouter()
 
 @router.get("", response_model=PaginatedResponse[PropertySummaryResponse])
 async def search_properties(
+    q: str | None = Query(None, description="Free text keyword search matching title, description, or locality"),
+    pricing_classification: str | None = Query(None, description="Filter by pricing classification (underpriced, fair, overpriced)"),
     locality_id: int | None = None,
     city_id: int | None = None,
     bhk: int | None = Query(None, ge=1, le=10),
@@ -51,6 +53,8 @@ async def search_properties(
     }
 
     summaries, next_cursor, total = await service.search(
+        q=q,
+        pricing_classification=pricing_classification,
         city_id=city_id,
         locality_id=locality_id,
         bhk=bhk,

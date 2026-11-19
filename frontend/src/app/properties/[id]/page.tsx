@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
+import { useCompare } from '@/contexts/CompareContext';
+import PropertyCard from '@/components/property/PropertyCard';
 import {
   formatINR,
   formatArea,
@@ -50,6 +53,9 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const { addToCompare, removeFromCompare, isInCompare, compareIds, isFull } = useCompare();
+  const inCompare = property ? isInCompare(property.id) : false;
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -142,6 +148,36 @@ export default function PropertyDetailPage() {
               {property.location?.pin_code && ` — ${property.location.pin_code}`}
             </div>
 
+            {/* Compare and Action Buttons */}
+            <div className={styles.detailActions}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (inCompare) {
+                    removeFromCompare(property.id);
+                  } else if (!isFull) {
+                    addToCompare(property.id);
+                  }
+                }}
+                className={`btn ${inCompare ? 'btn-secondary' : 'btn-primary'}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                title={inCompare ? 'Remove from comparison' : isFull ? 'Comparison limit reached (max 4)' : 'Add to side-by-side comparison matrix'}
+              >
+                <Icon name="scale" size={16} />
+                {inCompare ? 'In Comparison Matrix (Remove)' : isFull ? 'Compare List Full (4 max)' : 'Add to Compare'}
+              </button>
+
+              {compareIds.length >= 2 && (
+                <Link
+                  href={`/compare?ids=${compareIds.join(',')}`}
+                  className="btn btn-secondary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <Icon name="award" size={16} /> View Comparison ({compareIds.length} properties)
+                </Link>
+              )}
+            </div>
+
             {/* Specs grid */}
             <div className={styles.specsGrid}>
               <SpecItem label="BHK" value={`${property.bhk}`} />
@@ -178,6 +214,9 @@ export default function PropertyDetailPage() {
 
             {/* Investment Potential */}
             <InvestmentPotential propertyId={property.id} />
+
+            {/* Similar Properties & Quick Compare */}
+            <SimilarProperties propertyId={property.id} />
 
             {/* Metadata */}
             <div className={styles.meta}>
@@ -670,6 +709,63 @@ function InvestmentPotential({ propertyId }: { propertyId: string }) {
         )}
 
         <p className={styles.verdictText}>{data.summary_verdict}</p>
+      </div>
+    </div>
+  );
+}
+
+interface SimilarPropertyItem {
+  id: string;
+  title: string;
+  property_type: string;
+  bhk: number;
+  area_sqft: number;
+  listing_price: number;
+  locality: { id: number; name: string; city: string };
+  primary_image_url: string | null;
+  valuation_summary: { pricing_classification: string | null } | null;
+  location_score: number | null;
+}
+
+function SimilarProperties({ propertyId }: { propertyId: string }) {
+  const [similar, setSimilar] = useState<SimilarPropertyItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<SimilarPropertyItem[]>(`/properties/${propertyId}/similar?limit=3`)
+      .then(setSimilar)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [propertyId]);
+
+  if (loading || similar.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: 'var(--space-12)' }}>
+      <h2 className={styles.sectionTitle} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Icon name="scale" size={20} /> Similar Properties (Add to Compare)
+      </h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', marginBottom: 'var(--space-4)' }}>
+        Compare this listing against peer properties with similar configuration and micro-market characteristics.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'var(--space-4)' }}>
+        {similar.map((prop) => (
+          <PropertyCard
+            key={prop.id}
+            id={prop.id}
+            title={prop.title}
+            propertyType={prop.property_type}
+            bhk={prop.bhk}
+            areaSqft={prop.area_sqft}
+            listingPrice={prop.listing_price}
+            locality={prop.locality.name}
+            city={prop.locality.city}
+            imageUrl={prop.primary_image_url}
+            pricingClassification={prop.valuation_summary?.pricing_classification}
+            locationScore={prop.location_score}
+          />
+        ))}
       </div>
     </div>
   );

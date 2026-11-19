@@ -6,7 +6,7 @@ import base64
 import json
 import uuid
 
-from sqlalchemy import func, select, and_
+from sqlalchemy import func, select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -40,6 +40,8 @@ class PropertyRepository:
     async def search(
         self,
         *,
+        q: str | None = None,
+        pricing_classification: str | None = None,
         city_id: int | None = None,
         locality_id: int | None = None,
         bhk: int | None = None,
@@ -70,6 +72,17 @@ class PropertyRepository:
 
         # Apply filters
         filters = []
+        if q and q.strip():
+            term = f"%{q.strip()}%"
+            query = query.outerjoin(Locality, Property.locality_id == Locality.id)
+            count_query = count_query.outerjoin(Locality, Property.locality_id == Locality.id)
+            filters.append(
+                or_(
+                    Property.title.ilike(term),
+                    Property.description.ilike(term),
+                    Locality.name.ilike(term),
+                )
+            )
         if city_id:
             filters.append(Property.city_id == city_id)
         if locality_id:
@@ -88,6 +101,11 @@ class PropertyRepository:
             filters.append(Property.area_sqft <= max_area)
         if furnishing:
             filters.append(Property.furnishing == furnishing)
+        if pricing_classification:
+            from datasage.models.valuation import ValuationPrediction
+            query = query.join(ValuationPrediction, Property.id == ValuationPrediction.property_id)
+            count_query = count_query.join(ValuationPrediction, Property.id == ValuationPrediction.property_id)
+            filters.append(ValuationPrediction.pricing_classification == pricing_classification)
 
         if filters:
             query = query.where(and_(*filters))

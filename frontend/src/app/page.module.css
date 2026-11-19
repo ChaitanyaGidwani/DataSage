@@ -24,7 +24,7 @@
 
 .heroContent {
   position: relative;
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 0 var(--space-6);
   animation: fadeIn 0.6s ease-out;
@@ -72,6 +72,125 @@
   gap: var(--space-4);
   justify-content: center;
   flex-wrap: wrap;
+  margin-bottom: var(--space-8);
+}
+
+/* Hero Search Component */
+.heroSearchCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  margin-top: var(--space-8);
+  text-align: left;
+}
+
+.searchForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.searchPrimaryRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.searchInputWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  transition: border-color var(--transition-fast);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.searchSubmitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 12px 24px;
+}
+
+.searchFiltersRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.searchSelect {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+}
+
+.quickChips {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.chipLabel {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chipBtn {
+  font-size: var(--fs-xs);
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.chipBtn:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-400);
+}
+
+.chipHighlight {
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--color-primary-400);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 /* Features */
