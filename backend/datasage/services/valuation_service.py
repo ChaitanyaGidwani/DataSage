@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -93,7 +93,7 @@ class ValuationService:
             prop_uuid = uuid.UUID(str(property_id))
         except (ValueError, AttributeError):
             from datasage.core.exceptions import NotFoundError
-            raise NotFoundError("Property", str(property_id))
+            raise NotFoundError("Property", str(property_id)) from None
 
         # Fetch property
         result = await self.session.execute(

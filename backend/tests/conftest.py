@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, AsyncGenerator, Generator
+from collections.abc import Generator
+from contextlib import suppress
+from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -14,11 +16,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datasage.core.database import get_session
 from datasage.core.security import create_access_token, hash_password
 from datasage.main import app
+from datasage.models.location import PropertyLocation
 from datasage.models.property import Property, PropertyImage
 from datasage.models.reference import City, Locality
 from datasage.models.user import User, UserPreference
-from datasage.models.location import PropertyLocation
-from datasage.models.valuation import ValuationPrediction, ModelVersion
 
 
 @pytest.fixture
@@ -78,8 +79,8 @@ def mock_property(mock_locality: Locality, mock_city: City) -> Property:
         longitude=77.3900,
         cached_location_score=82.0,
         is_active=True,
-        listed_at=datetime(2026, 1, 15, tzinfo=timezone.utc),
-        created_at=datetime(2026, 1, 15, tzinfo=timezone.utc),
+        listed_at=datetime(2026, 1, 15, tzinfo=UTC),
+        created_at=datetime(2026, 1, 15, tzinfo=UTC),
     )
     prop.locality = mock_locality
     prop.city = mock_city
@@ -119,7 +120,7 @@ def mock_user() -> User:
         role="buyer",
         email_verified=True,
         is_active=True,
-        created_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        created_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
@@ -135,7 +136,7 @@ def mock_admin_user() -> User:
         role="admin",
         email_verified=True,
         is_active=True,
-        created_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        created_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
@@ -174,7 +175,7 @@ def mock_user_preference(mock_user: User) -> UserPreference:
         commute_destination_lat=28.6139,
         commute_destination_lng=77.2090,
         commute_destination_label="Connaught Place",
-        updated_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        updated_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
@@ -195,10 +196,8 @@ def mock_session(
         empty_items: list[Any] = []
 
         params: dict[str, Any] = {}
-        try:
+        with suppress(Exception):
             params = query.compile().params
-        except Exception:
-            pass
         param_values = list(params.values())
 
         # UserPreference query

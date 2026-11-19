@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import logging
 import uuid
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +23,7 @@ from datasage.schemas.investment import (
 logger = logging.getLogger(__name__)
 
 # Historical 3-Year CAGR estimates and infra ratings for Delhi-NCR micromarkets
-LOCALITY_INVESTMENT_DATA: dict[str, dict] = {
+LOCALITY_INVESTMENT_DATA: dict[str, dict[str, Any]] = {
     # High Growth / Infrastructure corridors
     "Golf Course Extension": {"cagr": 11.2, "infra_score": 92, "rental_multiplier": 0.033, "catalysts": ["Dwarka Expressway completion", "Southern Peripheral Road cloverleaf", "Upcoming Cyber City 2"]},
     "Sector 150": {"cagr": 10.8, "infra_score": 90, "rental_multiplier": 0.034, "catalysts": ["Noida-Greater Noida Expressway connectivity", "Jewar International Airport corridor", "Sports City infrastructure"]},

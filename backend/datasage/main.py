@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -38,9 +38,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # In development, auto-create tables and seed data
     if settings.APP_ENV == "development":
         try:
+            from sqlalchemy import text
+
             from datasage.cli.seed import create_tables, run_seed
             from datasage.core.database import async_session_factory
-            from sqlalchemy import text
 
             await create_tables()
 
@@ -59,15 +60,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield  # Application runs here
 
     # Shutdown
-    try:
+    with suppress(Exception):
         from datasage.core.redis import close_redis
         await close_redis()
-    except Exception:
-        pass
-    try:
+    with suppress(Exception):
         await engine.dispose()
-    except Exception:
-        pass
     logger.info("DataSage shut down gracefully.")
 
 
@@ -164,7 +161,7 @@ def create_app() -> FastAPI:
 
 def _register_routers(app: FastAPI) -> None:
     """Import and mount all API routers."""
-    from datasage.api.v1.router import api_v1_router  # noqa: E402
+    from datasage.api.v1.router import api_v1_router
 
     app.include_router(api_v1_router, prefix="/api/v1")
 

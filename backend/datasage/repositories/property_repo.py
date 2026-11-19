@@ -6,12 +6,11 @@ import base64
 import json
 import uuid
 
-from sqlalchemy import func, select, and_, or_
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from datasage.models.property import Property, PropertyImage
-from datasage.models.location import PropertyLocation
+from datasage.models.property import Property
 from datasage.models.reference import Locality
 
 

@@ -9,8 +9,8 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.exceptions import NotFoundError
-from datasage.repositories.property_repo import PropertyRepository
 from datasage.repositories.locality_repo import LocalityRepository
+from datasage.repositories.property_repo import PropertyRepository
 from datasage.schemas.property import (
     LocalitySummary,
     PropertyDetailResponse,
@@ -38,6 +38,7 @@ class PropertyService:
         val_map: dict[uuid.UUID, ValuationSummary] = {}
         if prop_ids:
             from sqlalchemy import select
+
             from datasage.models.valuation import ValuationPrediction
             from datasage.schemas.property import ValuationSummary
 
@@ -91,7 +92,7 @@ class PropertyService:
         try:
             prop_uuid = uuid.UUID(property_id)
         except ValueError:
-            raise NotFoundError("Property", property_id)
+            raise NotFoundError("Property", property_id) from None
 
         prop = await self.property_repo.get_by_id(prop_uuid)
         if not prop:
@@ -155,7 +156,7 @@ class PropertyService:
         try:
             prop_uuid = uuid.UUID(property_id)
         except ValueError:
-            raise NotFoundError("Property", property_id)
+            raise NotFoundError("Property", property_id) from None
 
         prop = await self.property_repo.get_by_id(prop_uuid)
         if not prop:

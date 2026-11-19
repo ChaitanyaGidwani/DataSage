@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.core.database import get_session
 from datasage.repositories.locality_repo import LocalityRepository
@@ -16,8 +17,8 @@ async def search_localities(
     q: str = Query("", min_length=1, description="Search query"),
     city_id: int | None = None,
     limit: int = Query(10, ge=1, le=50),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> list[LocalityResponse]:
     """Search localities by name (autocomplete)."""
     repo = LocalityRepository(session)
     localities = await repo.search_by_name(q, city_id=city_id, limit=limit)
@@ -34,7 +35,10 @@ async def search_localities(
 
 
 @router.get("/{locality_id}", response_model=LocalityResponse)
-async def get_locality(locality_id: int, session=Depends(get_session)):
+async def get_locality(
+    locality_id: int,
+    session: AsyncSession = Depends(get_session),
+) -> LocalityResponse:
     """Get a specific locality by ID."""
     repo = LocalityRepository(session)
     loc = await repo.get_by_id(locality_id)

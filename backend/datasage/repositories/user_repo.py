@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,10 +54,10 @@ class UserRepository:
         await self.session.execute(
             update(User)
             .where(User.id == user_id)
-            .values(last_login_at=datetime.now(timezone.utc))
+            .values(last_login_at=datetime.now(UTC))
         )
 
-    async def update_profile(self, user_id: uuid.UUID, **kwargs) -> User | None:
+    async def update_profile(self, user_id: uuid.UUID, **kwargs: Any) -> User | None:
         user = await self.get_by_id(user_id)
         if user:
             for key, value in kwargs.items():
@@ -78,7 +79,7 @@ class PreferenceRepository:
         )
         return result.scalar_one_or_none()
 
-    async def upsert(self, user_id: uuid.UUID, data: dict) -> UserPreference:
+    async def upsert(self, user_id: uuid.UUID, data: dict[str, Any]) -> UserPreference:
         pref = await self.get_by_user(user_id)
         if pref:
             for key, value in data.items():

@@ -9,9 +9,10 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-# Import all models so autogenerate can detect them
-from datasage.models import Base  # noqa: F401
 from datasage.core.config import settings
+
+# Import all models so autogenerate can detect them
+from datasage.models import Base
 
 config = context.config
 

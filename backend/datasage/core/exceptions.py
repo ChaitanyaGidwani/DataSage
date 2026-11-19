@@ -5,6 +5,8 @@ See docs/21-error-handling.md for the full error taxonomy.
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class DataSageError(Exception):
     """Base exception for all DataSage application errors."""
@@ -14,7 +16,7 @@ class DataSageError(Exception):
         message: str,
         code: str,
         status_code: int = 500,
-        details: dict | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         self.message = message
         self.code = code

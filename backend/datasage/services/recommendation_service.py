@@ -8,22 +8,22 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from datasage.models.property import Property, PropertyImage
+from datasage.models.property import Property
+from datasage.models.reference import City, Locality
 from datasage.models.user import UserPreference
-from datasage.models.reference import Locality, City
 from datasage.models.valuation import ValuationPrediction
-from datasage.services.location_service import LocationService
-from datasage.services.valuation_service import ValuationService
 from datasage.schemas.property import LocalitySummary, PropertySummaryResponse, ValuationSummary
 from datasage.schemas.recommendation import (
-    RecommendationResponse,
     RecommendationItem,
+    RecommendationResponse,
 )
+from datasage.services.location_service import LocationService
+from datasage.services.valuation_service import ValuationService
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,6 @@ class RecommendationService:
         )
         budget_min = pref.budget_min if pref else None
         budget_max = pref.budget_max if pref else None
-        priorities = pref.lifestyle_priorities if pref and pref.lifestyle_priorities else ["metro", "schools", "shopping"]
 
         for prop in candidates:
             # Locality & City lookup

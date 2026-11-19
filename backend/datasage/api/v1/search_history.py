@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from typing import Any
+
+from fastapi import APIRouter, Depends, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from datasage.api.deps import get_current_user
 from datasage.core.database import get_session
@@ -16,8 +19,8 @@ router = APIRouter()
 async def list_search_history(
     limit: int = 20,
     user: User = Depends(get_current_user),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
     """Get user's recent search history."""
     repo = SearchHistoryRepository(session)
     history = await repo.get_by_user(user.id, limit=limit)
@@ -34,11 +37,12 @@ async def list_search_history(
     }
 
 
-@router.delete("", status_code=204)
+@router.delete("", status_code=204, response_class=Response)
 async def clear_search_history(
     user: User = Depends(get_current_user),
-    session=Depends(get_session),
-):
+    session: AsyncSession = Depends(get_session),
+) -> Response:
     """Clear all search history for the current user."""
     repo = SearchHistoryRepository(session)
     await repo.clear_for_user(user.id)
+    return Response(status_code=204)

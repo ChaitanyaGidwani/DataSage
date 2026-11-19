@@ -1,8 +1,9 @@
 """Unit tests for Redis cache utilities and offline resilience."""
 
 import json
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from datasage.core.redis import (
     cache_delete,
@@ -11,7 +12,6 @@ from datasage.core.redis import (
     cache_set,
     cache_set_json,
     close_redis,
-    get_redis_client,
     is_redis_available,
 )
 
