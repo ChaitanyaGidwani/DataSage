@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { useCompare } from '@/contexts/CompareContext';
 import PropertyCard from '@/components/property/PropertyCard';
@@ -54,6 +55,10 @@ export default function PropertyDetailPage() {
   const [error, setError] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  const { user, isAuthenticated } = useAuth();
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+
   const { addToCompare, removeFromCompare, isInCompare, compareIds, isFull } = useCompare();
   const inCompare = property ? isInCompare(property.id) : false;
 
@@ -70,6 +75,42 @@ export default function PropertyDetailPage() {
     };
     fetchProperty();
   }, [params.id]);
+
+  useEffect(() => {
+    if (property && isAuthenticated) {
+      api
+        .get<any>('/saved-properties/ids')
+        .then((ids) => {
+          if (Array.isArray(ids) && ids.includes(property.id)) {
+            setIsSaved(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [property, isAuthenticated]);
+
+  const handleToggleSave = async () => {
+    if (!isAuthenticated) {
+      window.location.href = '/login';
+      return;
+    }
+    if (!property) return;
+
+    setSaveLoading(true);
+    try {
+      if (isSaved) {
+        await api.delete(`/saved-properties/${property.id}`);
+        setIsSaved(false);
+      } else {
+        await api.post('/saved-properties', { property_id: property.id });
+        setIsSaved(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -96,7 +137,8 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const pricePerSqft = Math.round(property.listing_price / property.area_sqft);
+  const pricePerSqft =
+    property.area_sqft > 0 ? Math.round(property.listing_price / property.area_sqft) : 0;
   const images = property.images || [];
 
   return (
@@ -165,6 +207,25 @@ export default function PropertyDetailPage() {
               >
                 <Icon name="scale" size={16} />
                 {inCompare ? 'In Comparison Matrix (Remove)' : isFull ? 'Compare List Full (4 max)' : 'Add to Compare'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleSave}
+                disabled={saveLoading}
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: isSaved ? 'rgba(16, 185, 129, 0.15)' : undefined,
+                  borderColor: isSaved ? 'var(--color-success)' : undefined,
+                  color: isSaved ? 'var(--color-success)' : undefined,
+                }}
+                title={isSaved ? 'Remove from saved portfolio' : 'Save to your portfolio'}
+              >
+                <Icon name="bookmark" size={16} />
+                {saveLoading ? 'Updating...' : isSaved ? 'Saved to Portfolio' : 'Save Listing'}
               </button>
 
               {compareIds.length >= 2 && (

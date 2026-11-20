@@ -31,7 +31,7 @@ export default function PropertyCard({
   pricingClassification,
   locationScore,
 }: PropertyCardProps) {
-  const pricePerSqft = Math.round(listingPrice / areaSqft);
+  const pricePerSqft = areaSqft > 0 ? Math.round(listingPrice / areaSqft) : 0;
   const { addToCompare, removeFromCompare, isInCompare, isFull } = useCompare();
   const inCompare = isInCompare(id);
 

@@ -24,6 +24,10 @@ class SavedPropertyRepository:
     ) -> list[SavedProperty]:
         result = await self.session.execute(
             select(SavedProperty)
+            .options(
+                selectinload(SavedProperty.property).selectinload(Property.locality),
+                selectinload(SavedProperty.property).selectinload(Property.city),
+            )
             .where(SavedProperty.user_id == user_id)
             .order_by(SavedProperty.created_at.desc())
             .limit(limit)
@@ -48,13 +52,19 @@ class SavedPropertyRepository:
         await self.session.flush()
         return saved
 
-    async def unsave(self, user_id: uuid.UUID, property_id: uuid.UUID) -> bool:
+    async def unsave(self, user_id: uuid.UUID, target_id: uuid.UUID) -> bool:
+        from sqlalchemy import or_
+
         result = await self.session.execute(
             delete(SavedProperty).where(
                 SavedProperty.user_id == user_id,
-                SavedProperty.property_id == property_id,
+                or_(
+                    SavedProperty.property_id == target_id,
+                    SavedProperty.id == target_id,
+                ),
             )
         )
+        await self.session.flush()
         return result.rowcount > 0
 
     async def is_saved(self, user_id: uuid.UUID, property_id: uuid.UUID) -> bool:

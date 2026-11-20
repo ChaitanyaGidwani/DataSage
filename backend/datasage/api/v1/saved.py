@@ -30,10 +30,28 @@ async def list_saved(
                 "id": str(s.id),
                 "property_id": str(s.property_id),
                 "created_at": s.created_at.isoformat(),
+                "title": s.property.title if s.property else "Property Listing",
+                "listing_price": s.property.listing_price if s.property else 0,
+                "bhk": s.property.bhk if s.property else 0,
+                "area_sqft": s.property.area_sqft if s.property else 0,
+                "property_type": s.property.property_type if s.property else "apartment",
+                "locality_name": s.property.locality.name if (s.property and s.property.locality) else "",
+                "city_name": s.property.city.name if (s.property and s.property.city) else "",
             }
             for s in saved
         ]
     }
+
+
+@router.get("/ids")
+async def list_saved_ids(
+    user: User = Depends(get_current_user),
+    session=Depends(get_session),
+):
+    """List IDs of all properties saved by user for quick lookups."""
+    repo = SavedPropertyRepository(session)
+    saved = await repo.get_by_user(user.id, limit=1000)
+    return [str(s.property_id) for s in saved]
 
 
 @router.post("", status_code=201)

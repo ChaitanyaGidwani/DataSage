@@ -113,13 +113,14 @@ function PropertiesContent() {
         params.set('limit', '20');
 
         const response = await api.get<SearchResponse>(`/properties?${params.toString()}`);
+        const items = Array.isArray(response?.data) ? response.data : [];
         if (cursor) {
-          setProperties((prev) => [...prev, ...response.data]);
+          setProperties((prev) => [...prev, ...items]);
         } else {
-          setProperties(response.data);
+          setProperties(items);
         }
-        setTotalCount(response.pagination.total_count);
-        setNextCursor(response.pagination.next_cursor);
+        setTotalCount(response?.pagination?.total_count ?? items.length);
+        setNextCursor(response?.pagination?.next_cursor ?? null);
       } catch {
         // Error handled by API client
       } finally {

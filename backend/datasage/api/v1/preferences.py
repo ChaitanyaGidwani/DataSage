@@ -56,6 +56,21 @@ async def update_preferences(
     repo = PreferenceRepository(session)
 
     data = body.model_dump(exclude_unset=True, exclude={"commute_destination"})
+    if "bhk_preference" in data and "bhk_preferences" not in data:
+        data["bhk_preferences"] = data.pop("bhk_preference")
+    elif "bhk_preference" in data:
+        data.pop("bhk_preference")
+
+    if "preferred_localities" in data and "preferred_locality_ids" not in data:
+        data["preferred_locality_ids"] = data.pop("preferred_localities")
+    elif "preferred_localities" in data:
+        data.pop("preferred_localities")
+
+    if "property_types" in data and "property_type_preferences" not in data:
+        data["property_type_preferences"] = data.pop("property_types")
+    elif "property_types" in data:
+        data.pop("property_types")
+
     if body.commute_destination:
         data["commute_destination_lat"] = body.commute_destination.latitude
         data["commute_destination_lng"] = body.commute_destination.longitude

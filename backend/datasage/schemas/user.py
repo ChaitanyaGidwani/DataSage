@@ -41,10 +41,13 @@ class UserPreferenceRequest(BaseModel):
     budget_min: int | None = Field(None, ge=0)
     budget_max: int | None = Field(None, ge=0)
     bhk_preferences: list[int] | None = None
+    bhk_preference: list[int] | None = None
     preferred_locality_ids: list[int] | None = None
+    preferred_localities: list[int] | None = None
     commute_destination: CommuteDestination | None = None
     lifestyle_priorities: list[str] | None = None
     property_type_preferences: list[str] | None = None
+    property_types: list[str] | None = None
 
 
 class UserPreferenceResponse(BaseModel):

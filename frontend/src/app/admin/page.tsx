@@ -54,7 +54,10 @@ export default function AdminPage() {
     if (isAuthenticated) {
       Promise.all([
         api.get<AdminStats>('/admin/stats').then(setStats),
-        api.get<DatasetInfo[]>('/admin/datasets').then(setDatasets).catch(() => []),
+        api
+          .get<any>('/admin/datasets')
+          .then((res) => setDatasets(Array.isArray(res) ? res : res?.data || []))
+          .catch(() => setDatasets([])),
       ])
         .catch(() => {})
         .finally(() => setLoading(false));

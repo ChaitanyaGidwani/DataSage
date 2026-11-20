@@ -11,7 +11,8 @@ import styles from './page.module.css';
 interface LocalityOption {
   id: number;
   name: string;
-  city: string;
+  city?: string;
+  city_name?: string;
   avg_price_per_sqft: number | null;
 }
 
@@ -64,7 +65,10 @@ export default function OnboardingPage() {
   useEffect(() => {
     api
       .get<LocalityOption[]>('/localities')
-      .then(setLocalities)
+      .then((data) => {
+        const list = Array.isArray(data) ? data : ((data as any)?.data || []);
+        setLocalities(list);
+      })
       .catch(() => {});
   }, []);
 
@@ -77,9 +81,9 @@ export default function OnboardingPage() {
       await api.put('/preferences', {
         budget_min: budgetMin,
         budget_max: budgetMax,
-        bhk_preference: bhkPrefs,
-        property_types: propertyTypes,
-        preferred_localities: selectedLocalities,
+        bhk_preferences: bhkPrefs,
+        property_type_preferences: propertyTypes,
+        preferred_locality_ids: selectedLocalities,
         lifestyle_priorities: lifestylePriorities,
       });
       setDone(true);
@@ -271,7 +275,7 @@ export default function OnboardingPage() {
                   >
                     <div>
                       <span>{loc.name}</span>
-                      <span className={styles.localityCity}> — {loc.city}</span>
+                      <span className={styles.localityCity}> — {loc.city_name || loc.city}</span>
                     </div>
                     <div className={`${styles.localityCheck} ${isSelected ? styles.localityCheckActive : ''}`}>
                       {isSelected ? <Icon name="check" size={12} /> : null}

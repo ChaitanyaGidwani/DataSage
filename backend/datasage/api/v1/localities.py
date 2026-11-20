@@ -13,9 +13,9 @@ router = APIRouter()
 
 @router.get("", response_model=list[LocalityResponse])
 async def search_localities(
-    q: str = Query("", min_length=1, description="Search query"),
+    q: str = Query("", description="Search query"),
     city_id: int | None = None,
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(50, ge=1, le=100),
     session=Depends(get_session),
 ):
     """Search localities by name (autocomplete)."""

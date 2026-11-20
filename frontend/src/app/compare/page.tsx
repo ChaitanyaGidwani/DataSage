@@ -139,7 +139,7 @@ function CompareContent() {
       setSearchLoading(true);
       try {
         const res = await api.get<{ data: SearchItem[] }>(`/properties?q=${encodeURIComponent(searchQuery.trim())}&limit=5`);
-        setSearchResults(res.data || []);
+        setSearchResults(Array.isArray(res?.data) ? res.data : []);
         setDropdownOpen(true);
       } catch {
         setSearchResults([]);
@@ -313,13 +313,19 @@ function CompareContent() {
     );
   }
 
-  const { properties, summary } = data;
+  const properties = Array.isArray(data?.properties) ? data.properties : [];
+  const summary = data?.summary || {
+    best_value_id: null,
+    lowest_price_per_sqft_id: null,
+    highest_appreciation_id: null,
+    best_rental_yield_id: null,
+  };
   const colClass =
     properties.length === 2
       ? styles.matrix2
       : properties.length === 3
-      ? styles.matrix3
-      : styles.matrix4;
+        ? styles.matrix3
+        : styles.matrix4;
 
   const getWinnerTag = (id: string): { label: string; icon: IconName } | null => {
     if (summary.best_value_pick_id === id) return { label: 'Best Value Pick', icon: 'award' };
@@ -480,10 +486,10 @@ function CompareContent() {
                   style={
                     primaryImg
                       ? {
-                          backgroundImage: `url(${primaryImg})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }
+                        backgroundImage: `url(${primaryImg})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }
                       : undefined
                   }
                 >
@@ -507,8 +513,8 @@ function CompareContent() {
                       {prop.pricing_classification === 'underpriced'
                         ? 'Underpriced'
                         : prop.pricing_classification === 'overpriced'
-                        ? 'Overpriced'
-                        : 'Fair Price'}
+                          ? 'Overpriced'
+                          : 'Fair Price'}
                     </span>
                   )}
 
