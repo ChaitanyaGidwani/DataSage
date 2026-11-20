@@ -192,7 +192,7 @@ export default function DashboardPage() {
                 <Icon name="sparkles" size={18} /> Top AI Recommendations For You
               </h2>
               <Link href="/onboarding" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <Icon name="settings" size={14} /> Refine Preferences
+                <Icon name="sliders" size={14} /> Refine Preferences
               </Link>
             </div>
             <div className={styles.recGrid}>
@@ -344,16 +344,16 @@ export default function DashboardPage() {
                           <span className={styles.listMeta}>{formatDate(item.created_at)}</span>
                         </div>
                         <div style={{ marginTop: '4px' }}>
-                          {q && <span className={styles.historyTag}>Keyword: {q}</span>}
-                          {bhk && <span className={styles.historyTag}>{bhk} BHK</span>}
-                          {params?.pricing_classification && (
+                          {q ? <span className={styles.historyTag}>Keyword: {String(q)}</span> : null}
+                          {bhk ? <span className={styles.historyTag}>{String(bhk)} BHK</span> : null}
+                          {params?.pricing_classification ? (
                             <span className={styles.historyTag}>
                               {String(params.pricing_classification)}
                             </span>
-                          )}
-                          {!q && !bhk && !params?.pricing_classification && (
+                          ) : null}
+                          {!q && !bhk && !params?.pricing_classification ? (
                             <span className={styles.listMeta}>Explored NCR catalog</span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </Link>
